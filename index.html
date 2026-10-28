@@ -1,0 +1,2393 @@
+<!-- Tablero de releases · storytold -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Trabajo sin liberar · storytold</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-sans@5.3.0/600.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/500.css">
+<style>
+:root {
+  --fondo: #f6f6f3;
+  --superficie: #ffffff;
+  --tinta: #14161a;
+  --tinta-2: #434952;
+  --tenue: #60666f;
+  --regla: #e1e1db;
+  --regla-2: #c3c4bd;
+  --acento: #2756d1;
+  --acento-tenue: rgba(39, 86, 209, 0.14);
+  --issues: #434952;
+  --ok: #17784a;
+  --atraso: #ad5300;
+  --error: #b42318;
+  --aviso-atraso: #fdf3e6;
+  --aviso-error: #fcecea;
+  --aviso-neutro: #ecece7;
+  --esqueleto: #e6e6e0;
+  --brillo: #f0a800;
+  --brillo-texto: #875700;
+  --fila-reciente: rgba(240, 168, 0, 0.1);
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #0e1013;
+    --superficie: #16191d;
+    --tinta: #e8eaed;
+    --tinta-2: #b3b9c2;
+    --tenue: #8e959f;
+    --regla: #252a30;
+    --regla-2: #3a4049;
+    --acento: #7ea2ff;
+    --acento-tenue: rgba(126, 162, 255, 0.16);
+    --issues: #b3b9c2;
+    --ok: #4cc287;
+    --atraso: #f0a23c;
+    --error: #ff8077;
+    --aviso-atraso: #2a2114;
+    --aviso-error: #2c1716;
+    --aviso-neutro: #1b1f24;
+    --esqueleto: #1f2328;
+    --brillo: #ffc94a;
+    --brillo-texto: #ffd773;
+    --fila-reciente: rgba(255, 201, 74, 0.09);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 400 15px/1.5 var(--sans);
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+a { color: inherit; text-decoration-color: var(--regla-2); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 2px; }
+
+.pagina { max-width: 1120px; margin: 0 auto; padding: 0 24px 48px; }
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  padding: 32px 0 18px;
+  border-bottom: 1px solid var(--tinta);
+}
+
+.org { margin: 0 0 6px; font: 500 12.5px/1 var(--mono); color: var(--tenue); letter-spacing: 0.02em; }
+.org a { text-decoration: none; }
+.org a:hover { text-decoration: underline; }
+
+h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.015em; }
+
+.meta { display: flex; align-items: center; gap: 16px; text-align: right; }
+.meta p { margin: 0; font-size: 13px; color: var(--tinta-2); }
+.meta p + p { color: var(--tenue); }
+
+button {
+  font: 500 13.5px/1 var(--sans);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--regla-2);
+  border-radius: 4px;
+  padding: 9px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) { border-color: var(--tinta-2); }
+button:disabled { color: var(--tenue); cursor: default; }
+
+select {
+  font: 500 13.5px/1 var(--sans);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 1px solid var(--regla-2);
+  border-radius: 4px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+select:hover { border-color: var(--tinta-2); }
+
+.acciones { display: flex; gap: 8px; }
+
+.icono { display: inline-flex; align-items: center; padding: 8px 9px; color: var(--tenue); }
+.icono[aria-pressed="true"] { color: var(--acento); }
+.icono .tachado { display: none; }
+.icono[aria-pressed="false"] .tachado { display: inline; }
+.icono[aria-pressed="false"] .ondas { display: none; }
+
+.avisos:empty { display: none; }
+.avisos { display: grid; gap: 8px; margin-top: 16px; }
+.aviso { margin: 0; padding: 10px 14px; font-size: 14px; border-left: 3px solid; }
+.aviso-atraso { background: var(--aviso-atraso); border-color: var(--atraso); }
+.aviso-error { background: var(--aviso-error); border-color: var(--error); }
+.aviso-neutro { background: var(--aviso-neutro); border-color: var(--regla-2); }
+
+.resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 24px; }
+.cifra { padding: 2px 20px; border-left: 1px solid var(--regla); min-width: 0; }
+.cifra:first-child { padding-left: 0; border-left: 0; }
+.cifra p { margin: 0; }
+.cifra-tit { font-size: 12.5px; color: var(--tenue); }
+.cifra .cifra-num { margin: 4px 0 2px; transform-origin: left center; font-size: 30px; line-height: 1.1; font-weight: 500; letter-spacing: -0.01em; }
+.cifra-sub { font-size: 12.5px; color: var(--tinta-2); overflow-wrap: anywhere; }
+
+.bloque { margin-top: 40px; }
+.bloque-cabeza { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; padding-bottom: 10px; border-bottom: 1px solid var(--regla); }
+h2 { margin: 0; font-size: 15px; font-weight: 600; }
+
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--tinta-2); }
+.leyenda li { display: inline-flex; align-items: center; gap: 6px; }
+.leyenda svg { flex: none; }
+
+.grafico { position: relative; margin-top: 4px; min-height: 120px; }
+.grafico svg { display: block; overflow: visible; }
+
+.t-nombre { font: 500 13.5px var(--mono); fill: var(--tinta); }
+.t-sub { font: 400 11.5px var(--mono); fill: var(--tenue); }
+.t-valor { font: 600 13px var(--sans); fill: var(--tinta); }
+.t-issues { font: 500 12px var(--sans); fill: var(--tinta); }
+.t-issues-num { font-weight: 600; }
+.t-nueva { font: 600 11.5px var(--sans); fill: var(--brillo-texto); }
+.t-delta { font: 600 12.5px var(--mono); fill: var(--brillo-texto); }
+.reciente .fondo { fill: var(--brillo); fill-opacity: 0.09; }
+.marca-cambio { fill: var(--brillo); }
+.marcada { filter: drop-shadow(0 0 4px var(--brillo)); }
+.t-dias { font: 600 13px var(--sans); fill: var(--tinta); }
+.t-eje { font: 400 11px var(--sans); fill: var(--tenue); }
+.t-tenue { fill: var(--tenue); font-weight: 400; }
+.rejilla { stroke: var(--regla); stroke-width: 1; shape-rendering: crispEdges; }
+.rejilla-cero { stroke: var(--regla-2); }
+.separador { stroke: var(--regla); stroke-width: 1; shape-rendering: crispEdges; }
+.barra { fill: var(--acento); }
+.barra-sin { fill: url(#rayado); stroke: var(--acento); stroke-width: 1; }
+.rayado-fondo { fill: var(--acento-tenue); }
+.rayado-linea { stroke: var(--acento); stroke-width: 1.5; }
+.linea-issues { fill: var(--issues); }
+.esqueleto { fill: var(--esqueleto); }
+.f-ok { fill: var(--ok); }
+.f-atraso { fill: var(--atraso); }
+.f-sin { fill: none; stroke: var(--tenue); stroke-width: 1.5; }
+.fila { cursor: default; outline: none; }
+.fila .fondo { fill: transparent; }
+.fila:hover .fondo, .fila.activa .fondo { fill: var(--acento-tenue); fill-opacity: 0.45; }
+.fila .foco { fill: none; stroke: none; }
+.fila:focus-visible .foco { stroke: var(--acento); stroke-width: 2; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .esqueleto { animation: latido 1.4s ease-in-out infinite alternate; }
+  @keyframes latido { from { opacity: 1; } to { opacity: 0.45; } }
+}
+
+.crece { transform-box: fill-box; transform-origin: left center; animation: crecer 750ms cubic-bezier(0.2, 0.75, 0.25, 1) both; }
+@keyframes crecer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.aparece { animation: aparecer 260ms ease-out both; }
+@keyframes aparecer { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
+.pulso { animation: pulso 7s linear infinite; }
+@keyframes pulso { 0% { transform: translateX(0); } 16%, 100% { transform: translateX(var(--largo)); } }
+.brilla { animation: brillo 3s ease-out both; }
+@keyframes brillo {
+  0%, 100% { filter: none; }
+  15%, 48%, 81% { filter: brightness(1.35) drop-shadow(0 0 7px var(--acento)); }
+  32%, 65% { filter: brightness(1.1) drop-shadow(0 0 2px var(--acento)); }
+}
+.brilla-issues { animation: brillo-issues 3s ease-out both; }
+@keyframes brillo-issues {
+  0%, 100% { filter: none; }
+  15%, 48%, 81% { filter: drop-shadow(0 0 6px var(--brillo)); }
+  32%, 65% { filter: drop-shadow(0 0 2px var(--brillo)); }
+}
+.novedad .fondo { fill: var(--brillo); fill-opacity: 0.14; }
+.novedad.late .fondo { animation: latir 2.4s ease-in-out infinite; }
+@keyframes latir { 50% { fill-opacity: 0.3; } }
+.novedad .t-nombre, .novedad .t-sub { filter: drop-shadow(0 0 4px var(--brillo)); }
+.ola { transform-box: fill-box; animation: ola 1s ease-in-out 5 both; }
+@keyframes ola { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-5px); } 75% { transform: translateY(2px); } }
+
+.flotante {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  font: 600 18px var(--mono);
+  color: var(--brillo-texto);
+  text-shadow: 0 0 2px var(--fondo), 0 0 3px var(--fondo), 0 0 12px var(--brillo);
+  white-space: nowrap;
+}
+.flotante-cerrados { color: var(--tinta); text-shadow: 0 0 2px var(--fondo), 0 0 3px var(--fondo), 0 0 12px var(--issues); }
+.cifra-num.destello { animation: destello 2.6s ease-out both; }
+@keyframes destello {
+  0% { color: var(--acento); text-shadow: 0 0 16px var(--acento); transform: scale(1.12); }
+  30% { color: var(--acento); text-shadow: 0 0 10px var(--acento); transform: scale(1); }
+  100% { color: var(--tinta); text-shadow: none; transform: scale(1); }
+}
+
+.tip {
+  position: absolute;
+  z-index: 2;
+  min-width: 230px;
+  max-width: min(320px, 100%);
+  padding: 10px 12px;
+  background: var(--superficie);
+  border: 1px solid var(--regla-2);
+  border-radius: 4px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  font-size: 12.5px;
+  pointer-events: none;
+}
+.tip[hidden] { display: none; }
+.tip p { margin: 0 0 6px; }
+.tip strong { font: 500 13px var(--mono); }
+.tip dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; margin: 0; }
+.tip dt { color: var(--tinta-2); }
+.tip dd { margin: 0; text-align: right; font-weight: 500; }
+.tip .pie { margin: 6px 0 0; color: var(--tenue); }
+
+.tabla-marco { overflow-x: auto; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+caption { text-align: left; padding: 8px 0 10px; font-size: 12.5px; color: var(--tenue); }
+th { text-align: left; font-weight: 500; font-size: 12.5px; color: var(--tinta-2); border-bottom: 1px solid var(--tinta-2); padding: 0; vertical-align: bottom; }
+th button {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  white-space: normal;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+th button:hover { color: var(--tinta); }
+th.num, td.num { text-align: right; }
+th.num button { justify-content: flex-end; }
+th[aria-sort] button { color: var(--tinta); }
+.flecha { display: inline-block; width: 0.8em; color: var(--acento); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--regla); vertical-align: baseline; white-space: nowrap; }
+tbody tr:hover td { background: var(--aviso-neutro); }
+td.app { font: 500 13.5px var(--mono); }
+td.ver { font: 400 13px var(--mono); }
+.tenue { color: var(--tenue); }
+tr.reciente td { background: var(--fila-reciente); }
+tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
+.delta { margin-left: 5px; font: 600 12.5px var(--mono); color: var(--brillo-texto); }
+.origenes { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.origen {
+  padding: 0;
+  font: 600 12.5px/1.5 var(--mono);
+  color: var(--brillo-texto);
+  background: none;
+  border: 0;
+  border-radius: 2px;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.origen:hover:not(:disabled) { text-decoration-style: solid; }
+.estado { display: inline-flex; align-items: center; gap: 6px; }
+
+.pie-pagina { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--regla); font-size: 12.5px; color: var(--tenue); max-width: 72ch; }
+.pie-pagina p { margin: 0 0 6px; }
+.pie-pagina .nota-cupo { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; color: var(--tinta-2); }
+.nota-cupo[hidden] { display: none; }
+.nota-cupo::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--atraso); transform: translateY(-1px); }
+
+.solo-lector { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.modo { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--acento); border-radius: 3px; color: var(--acento); }
+.fila { cursor: pointer; }
+.abrir-app {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 2px;
+  text-decoration: underline;
+  text-decoration-color: var(--regla-2);
+  text-underline-offset: 3px;
+}
+.abrir-app:hover:not(:disabled) { text-decoration-color: currentColor; }
+.externo { margin-left: 6px; color: var(--tenue); text-decoration: none; }
+.externo:hover { color: var(--acento); }
+
+.detalle {
+  width: min(940px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  color: var(--tinta);
+  background: var(--fondo);
+  border: 1px solid var(--regla-2);
+  border-radius: 6px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+.detalle::backdrop { background: rgba(8, 10, 14, 0.55); }
+.detalle-cuerpo { max-height: calc(100dvh - 50px); overflow-y: auto; padding: 20px 24px 24px; }
+.detalle-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 20px; padding-bottom: 14px; border-bottom: 1px solid var(--tinta); }
+.detalle-cabeza h2 { font: 600 24px/1.15 var(--mono); }
+.detalle-sub { margin: 6px 0 0; font-size: 13px; color: var(--tinta-2); }
+.detalle-nav { display: flex; gap: 6px; flex: none; }
+.detalle-nav button { padding: 8px 11px; }
+.detalle .resumen { margin-top: 18px; }
+.detalle .cifra-num { font-size: 26px; }
+.controles-detalle { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+.rango { display: inline-flex; border: 1px solid var(--regla-2); border-radius: 4px; overflow: hidden; }
+.rango button { padding: 6px 12px; border: 0; border-radius: 0; font-size: 12.5px; }
+.rango button + button { border-left: 1px solid var(--regla-2); }
+.rango button[aria-pressed="true"] { color: var(--fondo); background: var(--tinta); }
+.nota-detalle { margin: 0; font-size: 12.5px; color: var(--tenue); }
+.grafico-detalle { margin-top: 22px; }
+.grafico-detalle h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.cabeza-serie { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; padding-bottom: 6px; border-bottom: 1px solid var(--regla); }
+.lectura { margin: 0; min-height: 1.5em; font-size: 12.5px; color: var(--tinta-2); }
+.lienzo { position: relative; margin-top: 6px; }
+.lienzo svg { display: block; overflow: visible; border-radius: 2px; }
+.lienzo svg:focus-visible { outline-offset: 4px; }
+.serie-commits { fill: var(--acento); }
+.serie-reportados { fill: var(--tinta-2); fill-opacity: 0.55; }
+.serie-cerrados { fill: var(--issues); }
+.linea-abiertos { fill: none; stroke: var(--tinta); stroke-width: 1.75; stroke-linejoin: round; }
+.area-abiertos { fill: var(--tinta); fill-opacity: 0.07; }
+.marca-release { stroke: var(--brillo); stroke-width: 1; stroke-dasharray: 3 3; }
+.t-release { font: 500 10.5px var(--mono); fill: var(--brillo-texto); }
+.cursor-serie { stroke: var(--tinta-2); stroke-width: 1; }
+.leyenda-serie { display: inline-flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--tinta-2); }
+.leyenda-serie li { display: inline-flex; align-items: center; gap: 5px; }
+.detalle .tabla-marco { margin-top: 8px; }
+.detalle td { white-space: nowrap; }
+.tabla-releases th { padding: 8px 10px; }
+
+@media (max-width: 760px) {
+  .opc { display: none; }
+  .resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
+  .cifra:nth-child(3) { padding-left: 0; border-left: 0; }
+}
+
+@media (max-width: 560px) {
+  .pagina { padding: 0 16px 40px; }
+  .cabecera { padding-top: 22px; }
+  .detalle { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+  .detalle-cuerpo { max-height: 100dvh; padding: 16px; }
+  .detalle-cabeza { flex-wrap: wrap; }
+  .detalle-cabeza h2 { font-size: 20px; }
+  h1 { font-size: 25px; }
+  .meta { width: 100%; flex-wrap: wrap; justify-content: space-between; text-align: left; }
+  .cifra { padding: 2px 12px; }
+  .cifra-num { font-size: 25px; }
+  td, th button { padding-left: 4px; padding-right: 4px; }
+  td:first-child, th:first-child button { padding-left: 0; }
+  td:last-child, th:last-child button { padding-right: 0; }
+  .ver { display: none; }
+  table { font-size: 13px; }
+  td.app { font-size: 12.5px; }
+}
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header class="cabecera">
+    <div>
+      <p class="org"><a href="https://github.com/storytold">storytold</a> / apps<span id="modo" class="modo" hidden></span></p>
+      <h1>CraftApps-Pulse</h1>
+    </div>
+    <div class="meta">
+      <div>
+        <p id="meta-estado"></p>
+        <p id="meta-cupo"></p>
+      </div>
+      <div class="acciones">
+        <label><span class="solo-lector" data-t="idioma"></span>
+          <select id="idioma">
+            <option value="es" lang="es">ES</option>
+            <option value="en" lang="en">EN</option>
+            <option value="pt" lang="pt">PT</option>
+          </select>
+        </label>
+        <button id="sonido" class="icono" type="button" aria-pressed="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3.2v10.4L5 10H2z" fill="currentColor"/><path class="ondas" d="M11 5.2a3.6 3.6 0 0 1 0 5.6M12.8 3.4a6 6 0 0 1 0 9.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="tachado" d="M11 5.5l4 5M15 5.5l-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button id="efectos" class="icono" type="button" aria-pressed="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1.5l1.5 4.4 4.4 1.5-4.4 1.5L7 13.3l-1.5-4.4L1.1 7.4l4.4-1.5z" fill="currentColor"/><path class="ondas" d="M13 10.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/><path class="tachado" d="M2 14L14 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button id="actualizar" type="button"></button>
+      </div>
+    </div>
+  </header>
+
+  <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+  <section id="resumen" class="resumen" data-t-aria="totales"></section>
+
+  <section class="bloque" aria-labelledby="t-grafico">
+    <div class="bloque-cabeza">
+      <h2 id="t-grafico" data-t="tituloGrafico"></h2>
+      <ul class="leyenda">
+        <li><svg width="18" height="10" aria-hidden="true"><rect class="barra" width="18" height="10" rx="2"/></svg><span data-t="leyendaCommits"></span></li>
+        <li><svg width="18" height="11" aria-hidden="true"><rect class="linea-issues" y="2.5" width="15" height="6" rx="1.5"/><rect class="linea-issues" x="15.5" y="0" width="2.5" height="11"/></svg><span data-t="leyendaIssues"></span></li>
+        <li><svg width="10" height="10" aria-hidden="true"><circle class="f-ok" cx="5" cy="5" r="4.5"/></svg><span data-t="leyendaAlDia"></span></li>
+        <li><svg width="11" height="10" aria-hidden="true"><path class="f-atraso" d="M5.5 0.5 10.5 9.5H0.5Z"/></svg><span data-t="leyendaAtrasado"></span></li>
+        <li><svg width="10" height="10" aria-hidden="true"><rect class="f-sin" x="1" y="1" width="8" height="8"/></svg><span data-t="leyendaSin"></span></li>
+      </ul>
+    </div>
+    <div id="grafico" class="grafico"></div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-tabla">
+    <div class="bloque-cabeza">
+      <h2 id="t-tabla" data-t="tituloTabla"></h2>
+    </div>
+    <div class="tabla-marco">
+      <table id="tabla">
+        <caption data-t="leyendaTabla"></caption>
+        <thead><tr></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="pie-pagina">
+    <p id="nota-cupo" class="nota-cupo" role="status" hidden></p>
+    <p data-t="pie1"></p>
+    <p data-t="pie2"></p>
+    <p><a id="otra-version" href="?en-vivo"></a></p>
+  </footer>
+</div>
+
+<dialog id="detalle" class="detalle" aria-labelledby="detalle-titulo"></dialog>
+
+<script>
+const ORG = 'storytold';
+const REPOS = [
+  'photocraft', 'filmcraft', 'effectcraft', 'soundcraft', 'gridcraft', 'lightcraft', 'cadcraft',
+  'pdfcraft', 'deckcraft', 'vectorcraft', 'figcraft', 'designcraft', 'wordcraft',
+];
+const ETIQUETAS_BUG = ['bug'];
+const DIAS_ATRASO = 14;
+const INTERVALO = 10 * 60 * 1000;
+const CONCURRENCIA = 3;
+const RESERVA = 4;
+
+const API = 'https://api.github.com';
+const EN_VIVO = /en-vivo(\.html)?$/.test(location.pathname) || new URLSearchParams(location.search).has('en-vivo');
+const CLAVE = EN_VIVO ? 'tablero-storytold:vivo:v1' : 'tablero-storytold:v1';
+const MIN = 60 * 1000;
+const DIA = 24 * 60 * MIN;
+
+const CLAVE_IDIOMA = 'tablero-storytold:idioma';
+const LOCALES = { es: 'es', en: 'en', pt: 'pt-BR' };
+
+const TEXTOS = {
+  es: {
+    idioma: 'Idioma',
+    sonido: 'Sonidos',
+    efectos: 'Efectos',
+    nuevaRelease: 'nueva release',
+    cambioCommits: n => `+${n} commits`,
+    cambioIssues: n => `+${n} issues cerrados`,
+    irA: nombre => `Ir a ${nombre} en el gráfico`,
+    verDetalle: nombre => `Ver detalle de ${nombre}`,
+    externo: nombre => `Abrir ${nombre} en GitHub`,
+    cerrar: 'Cerrar',
+    anterior: 'App anterior',
+    siguiente: 'App siguiente',
+    rangos: { 30: '30 días', 90: '90 días', 0: 'Todo' },
+    rangoTitulo: 'Período',
+    tituloCommits: semana => (semana ? 'Commits por semana' : 'Commits por día'),
+    tituloIssues: semana => (semana ? 'Issues reportados y cerrados por semana' : 'Issues reportados y cerrados por día'),
+    tituloAbiertos: 'Issues abiertos',
+    reportados: 'Reportados',
+    cerradosSerie: 'Cerrados',
+    semanaDe: fecha => `semana del ${fecha}`,
+    lecturaCommits: (fecha, n) => `${fecha}: ${n} commits`,
+    lecturaIssues: (fecha, r, c) => `${fecha}: ${r} reportados · ${c} cerrados`,
+    lecturaAbiertos: (fecha, n) => `${fecha}: ${n} abiertos`,
+    sinContar: 'sin contar todavía',
+    resumenCommits: (n, dias) => `${n} commits en ${dias} días`,
+    resumenIssues: (r, c) => `${r} reportados · ${c} cerrados`,
+    resumenAbiertos: n => `${n} abiertos hoy`,
+    kpiHistorial: 'Commits en el historial',
+    kpiAbiertos: 'Issues abiertos ahora',
+    desde: fecha => `desde ${fecha}`,
+    tablaReleases: 'Releases',
+    columnasReleases: ['Versión', 'Fecha', 'Días de ciclo', 'Commits', 'Issues cerrados'],
+    enCurso: 'En curso (sin liberar)',
+    notaCiclos: 'Commits e issues por ciclo salen de los conteos por día.',
+    sinHistorial: 'El historial lo genera la GitHub Action. Todavía no hay datos para esta app.',
+    cargandoHistorial: 'Cargando historial…',
+    issuesIncompletos: p => `El historial de issues todavía se está cargando (${p} %). Se completa solo en las próximas ejecuciones.`,
+    diasSinContar: n => (n === 1 ? '1 día todavía sin contar.' : `${n} días todavía sin contar.`),
+    historialDe: cuando => `Historial generado a las ${cuando}`,
+    modoVivo: 'en vivo',
+    verVivo: 'Ver la versión en vivo (consulta la API desde tu navegador)',
+    verAuto: 'Ver la versión automática (sin gastar API)',
+    releaseLectura: tag => `release ${tag}`,
+    sufijoIssues: n => (n === 1 ? 'issue cerrado' : 'issues cerrados'),
+    actualizar: 'Actualizar',
+    actualizando: 'Actualizando…',
+    totales: 'Totales',
+    tituloGrafico: 'Commits desde la última release',
+    ariaGrafico: 'Commits desde la última release por app',
+    leyendaCommits: 'Commits desde la release',
+    leyendaIssues: 'Issues cerrados desde la release',
+    leyendaAlDia: d => `Al día (≤ ${d} d)`,
+    leyendaAtrasado: d => `Atrasado (> ${d} d)`,
+    leyendaSin: 'Sin releases (commits de 30 d)',
+    tituloTabla: 'Cifras por app',
+    leyendaTabla: 'Toca un encabezado para ordenar. Los días cuentan desde la publicación de la última release.',
+    pie1: 'Una GitHub Action recolecta los datos cada 10 minutos y la página solo lee ese archivo, así que no gasta la API de quien la visita. Si el archivo no está o tiene más de hora y media, la página consulta directo la API pública de GitHub (60 consultas por hora por IP) y revisa solo las apps que recibieron cambios.',
+    fuenteArchivo: 'Datos del servidor, sin gastar API',
+    pie2: 'Commits desde la release: comparación entre la etiqueta de la release y la rama por defecto. Issues cerrados: issues (sin pull requests) cerrados desde la fecha de publicación de la release. Commits en 30 días: rama por defecto.',
+    columnas: { nombre: 'App', version: 'Versión', fecha: 'Publicada', dias: 'Días', adelante: 'Commits desde release', cerrados: 'Issues cerrados', bugs: 'Con bug', commits30: 'Commits 30 d', estrellas: 'Estrellas', forks: 'Forks' },
+    haceUnMomento: 'hace un momento',
+    hace: tiempo => `hace ${tiempo}`,
+    hoy: 'hoy',
+    consultando: (hechos, total) => `Consultando GitHub · ${hechos} de ${total} apps`,
+    contando: (hechos, total) => `Contando issues cerrados · ${hechos} de ${total} apps`,
+    consultandoSolo: 'Consultando GitHub…',
+    actualizado: (cuando, hace) => `Actualizado a las ${cuando} · ${hace}`,
+    sinDatosTodavia: 'Sin datos todavía',
+    cupo: (restante, limite, reset) => `Cupo de la API: ${restante} de ${limite}, se renueva a las ${reset}`,
+    cupoRenovado: limite => `Cupo de la API: renovado (${limite} por hora)`,
+    esperanCupo: n => (n === 1 ? '1 app espera cupo' : `${n} apps esperan cupo`),
+    guardados: (cuando, hace) => `Muestro los datos guardados de las ${cuando} (${hace}).`,
+    sinGuardados: 'Todavía no hay datos guardados en este navegador.',
+    sinCupo: (reset, datos) => `Sin cupo de la API hasta las ${reset}${datos ? ` · datos de las ${datos}` : ''}`,
+    sinRed: guardados => `No hay conexión con GitHub. ${guardados} Vuelvo a intentar cuando regrese la red.`,
+    errorGithub: (error, guardados) => `GitHub devolvió un error (${error}). ${guardados}`,
+    datosViejos: (cuando, hace) => `Datos guardados: la última actualización real fue a las ${cuando} (${hace}).`,
+    esperaBusqueda: reset => `sigue a las ${reset}`,
+    errorRepos: (lista, error) => `No pude leer ${lista}: ${error}. Se muestra lo último guardado.`,
+    cifraCommits: 'Commits sin liberar',
+    cifraCommitsSub: n => (n === 1 ? 'en 1 app con release' : `en ${n} apps con release`),
+    cifraIssues: 'Issues cerrados desde la release',
+    cifraIssuesSub: n => `${n} con etiqueta bug`,
+    sinContarTodavia: 'sin contar todavía',
+    cifra30: 'Commits en 30 días',
+    cifra30Sub: 'en las ramas por defecto',
+    cifraVieja: 'Release más antigua',
+    sinDatos: 'sin datos',
+    sinReleases: 'sin releases',
+    en30: valor => `${valor} en 30 d`,
+    issuesSinContar: 'issues sin contar',
+    contandoIssues: 'contando issues…',
+    ningunIssue: 'ningún issue cerrado',
+    issuesCerrados: (n, valor) => (n === 1 ? `${valor} issue cerrado` : `${valor} issues cerrados`),
+    bug: valor => `${valor} bug`,
+    filaCargando: nombre => `${nombre}: cargando`,
+    filaRelease: (nombre, tag, commits, dias, issues) => `${nombre} ${tag}: ${commits} commits desde la release, ${dias}, ${issues}`,
+    filaSin: (nombre, commits) => `${nombre}: sin releases, ${commits} commits en 30 días`,
+    tipCommits: 'Commits desde la release',
+    tipIssues: 'Issues cerrados',
+    tipSinContar: 'sin contar',
+    tip30: 'Commits en 30 días',
+    tipPublicada: (fecha, hace) => `Publicada el ${fecha}, ${hace}`,
+    tipSinReleases: 'Sin releases publicadas',
+    tipSinDatos: 'Todavía sin datos',
+    tipDato: (cuando, hace) => `Dato de las ${cuando} (${hace})`,
+    alDia: 'al día',
+    atrasado: 'atrasado',
+  },
+  en: {
+    idioma: 'Language',
+    sonido: 'Sounds',
+    efectos: 'Effects',
+    nuevaRelease: 'new release',
+    cambioCommits: n => `+${n} commits`,
+    cambioIssues: n => `+${n} closed issues`,
+    irA: nombre => `Go to ${nombre} in the chart`,
+    verDetalle: nombre => `See details for ${nombre}`,
+    externo: nombre => `Open ${nombre} on GitHub`,
+    cerrar: 'Close',
+    anterior: 'Previous app',
+    siguiente: 'Next app',
+    rangos: { 30: '30 days', 90: '90 days', 0: 'All' },
+    rangoTitulo: 'Period',
+    tituloCommits: semana => (semana ? 'Commits per week' : 'Commits per day'),
+    tituloIssues: semana => (semana ? 'Issues reported and closed per week' : 'Issues reported and closed per day'),
+    tituloAbiertos: 'Open issues',
+    reportados: 'Reported',
+    cerradosSerie: 'Closed',
+    semanaDe: fecha => `week of ${fecha}`,
+    lecturaCommits: (fecha, n) => `${fecha}: ${n} commits`,
+    lecturaIssues: (fecha, r, c) => `${fecha}: ${r} reported · ${c} closed`,
+    lecturaAbiertos: (fecha, n) => `${fecha}: ${n} open`,
+    sinContar: 'not counted yet',
+    resumenCommits: (n, dias) => `${n} commits in ${dias} days`,
+    resumenIssues: (r, c) => `${r} reported · ${c} closed`,
+    resumenAbiertos: n => `${n} open today`,
+    kpiHistorial: 'Commits in history',
+    kpiAbiertos: 'Open issues now',
+    desde: fecha => `since ${fecha}`,
+    tablaReleases: 'Releases',
+    columnasReleases: ['Version', 'Date', 'Cycle days', 'Commits', 'Closed issues'],
+    enCurso: 'In progress (unreleased)',
+    notaCiclos: 'Commits and issues per cycle come from the daily counts.',
+    sinHistorial: 'History is built by the GitHub Action. There is no data for this app yet.',
+    cargandoHistorial: 'Loading history…',
+    issuesIncompletos: p => `Issue history is still loading (${p} %). It completes on its own over the next runs.`,
+    diasSinContar: n => (n === 1 ? '1 day not counted yet.' : `${n} days not counted yet.`),
+    historialDe: cuando => `History generated at ${cuando}`,
+    modoVivo: 'live',
+    verVivo: 'See the live version (queries the API from your browser)',
+    verAuto: 'See the automatic version (no API use)',
+    releaseLectura: tag => `release ${tag}`,
+    sufijoIssues: n => (n === 1 ? 'closed issue' : 'closed issues'),
+    actualizar: 'Refresh',
+    actualizando: 'Refreshing…',
+    totales: 'Totals',
+    tituloGrafico: 'Commits since the latest release',
+    ariaGrafico: 'Commits since the latest release, per app',
+    leyendaCommits: 'Commits since release',
+    leyendaIssues: 'Issues closed since release',
+    leyendaAlDia: d => `Up to date (≤ ${d} d)`,
+    leyendaAtrasado: d => `Behind (> ${d} d)`,
+    leyendaSin: 'No releases (30-day commits)',
+    tituloTabla: 'Numbers per app',
+    leyendaTabla: 'Tap a header to sort. Days count from when the latest release was published.',
+    pie1: 'A GitHub Action collects the data every 10 minutes and the page only reads that file, so visitors spend no API quota. If the file is missing or older than an hour and a half, the page queries the public GitHub API directly (60 requests per hour per IP) and checks only apps that received changes.',
+    fuenteArchivo: 'Server data, no API use',
+    pie2: 'Commits since release: comparison between the release tag and the default branch. Closed issues: issues (not pull requests) closed since the release was published. 30-day commits: default branch.',
+    columnas: { nombre: 'App', version: 'Version', fecha: 'Published', dias: 'Days', adelante: 'Commits since release', cerrados: 'Closed issues', bugs: 'Bug', commits30: '30-day commits', estrellas: 'Stars', forks: 'Forks' },
+    haceUnMomento: 'just now',
+    hace: tiempo => `${tiempo} ago`,
+    hoy: 'today',
+    consultando: (hechos, total) => `Querying GitHub · ${hechos} of ${total} apps`,
+    contando: (hechos, total) => `Counting closed issues · ${hechos} of ${total} apps`,
+    consultandoSolo: 'Querying GitHub…',
+    actualizado: (cuando, hace) => `Updated at ${cuando} · ${hace}`,
+    sinDatosTodavia: 'No data yet',
+    cupo: (restante, limite, reset) => `API quota: ${restante} of ${limite}, resets at ${reset}`,
+    cupoRenovado: limite => `API quota: reset (${limite} per hour)`,
+    esperanCupo: n => (n === 1 ? '1 app waiting for quota' : `${n} apps waiting for quota`),
+    guardados: (cuando, hace) => `Showing data saved at ${cuando} (${hace}).`,
+    sinGuardados: 'No data saved in this browser yet.',
+    sinCupo: (reset, datos) => `API quota used up until ${reset}${datos ? ` · data from ${datos}` : ''}`,
+    sinRed: guardados => `Can't reach GitHub. ${guardados} Retrying when the connection comes back.`,
+    errorGithub: (error, guardados) => `GitHub returned an error (${error}). ${guardados}`,
+    datosViejos: (cuando, hace) => `Saved data: the last real update was at ${cuando} (${hace}).`,
+    esperaBusqueda: reset => `resumes at ${reset}`,
+    errorRepos: (lista, error) => `Couldn't read ${lista}: ${error}. Showing the last saved data.`,
+    cifraCommits: 'Unreleased commits',
+    cifraCommitsSub: n => (n === 1 ? 'across 1 app with a release' : `across ${n} apps with a release`),
+    cifraIssues: 'Issues closed since release',
+    cifraIssuesSub: n => `${n} labeled bug`,
+    sinContarTodavia: 'not counted yet',
+    cifra30: 'Commits in 30 days',
+    cifra30Sub: 'on default branches',
+    cifraVieja: 'Oldest release',
+    sinDatos: 'no data',
+    sinReleases: 'no releases',
+    en30: valor => `${valor} in 30 d`,
+    issuesSinContar: 'issues not counted',
+    contandoIssues: 'counting issues…',
+    ningunIssue: 'no closed issues',
+    issuesCerrados: (n, valor) => (n === 1 ? `${valor} closed issue` : `${valor} closed issues`),
+    bug: valor => `${valor} bug`,
+    filaCargando: nombre => `${nombre}: loading`,
+    filaRelease: (nombre, tag, commits, dias, issues) => `${nombre} ${tag}: ${commits} commits since release, ${dias}, ${issues}`,
+    filaSin: (nombre, commits) => `${nombre}: no releases, ${commits} commits in 30 days`,
+    tipCommits: 'Commits since release',
+    tipIssues: 'Closed issues',
+    tipSinContar: 'not counted',
+    tip30: 'Commits in 30 days',
+    tipPublicada: (fecha, hace) => `Published ${fecha}, ${hace}`,
+    tipSinReleases: 'No published releases',
+    tipSinDatos: 'No data yet',
+    tipDato: (cuando, hace) => `Data from ${cuando} (${hace})`,
+    alDia: 'up to date',
+    atrasado: 'behind',
+  },
+  pt: {
+    idioma: 'Idioma',
+    sonido: 'Sons',
+    efectos: 'Efeitos',
+    nuevaRelease: 'nova release',
+    cambioCommits: n => `+${n} commits`,
+    cambioIssues: n => `+${n} issues fechadas`,
+    irA: nombre => `Ir para ${nombre} no gráfico`,
+    verDetalle: nombre => `Ver detalhes de ${nombre}`,
+    externo: nombre => `Abrir ${nombre} no GitHub`,
+    cerrar: 'Fechar',
+    anterior: 'App anterior',
+    siguiente: 'Próximo app',
+    rangos: { 30: '30 dias', 90: '90 dias', 0: 'Tudo' },
+    rangoTitulo: 'Período',
+    tituloCommits: semana => (semana ? 'Commits por semana' : 'Commits por dia'),
+    tituloIssues: semana => (semana ? 'Issues reportadas e fechadas por semana' : 'Issues reportadas e fechadas por dia'),
+    tituloAbiertos: 'Issues abertas',
+    reportados: 'Reportadas',
+    cerradosSerie: 'Fechadas',
+    semanaDe: fecha => `semana de ${fecha}`,
+    lecturaCommits: (fecha, n) => `${fecha}: ${n} commits`,
+    lecturaIssues: (fecha, r, c) => `${fecha}: ${r} reportadas · ${c} fechadas`,
+    lecturaAbiertos: (fecha, n) => `${fecha}: ${n} abertas`,
+    sinContar: 'ainda sem contar',
+    resumenCommits: (n, dias) => `${n} commits em ${dias} dias`,
+    resumenIssues: (r, c) => `${r} reportadas · ${c} fechadas`,
+    resumenAbiertos: n => `${n} abertas hoje`,
+    kpiHistorial: 'Commits no histórico',
+    kpiAbiertos: 'Issues abertas agora',
+    desde: fecha => `desde ${fecha}`,
+    tablaReleases: 'Releases',
+    columnasReleases: ['Versão', 'Data', 'Dias de ciclo', 'Commits', 'Issues fechadas'],
+    enCurso: 'Em andamento (sem release)',
+    notaCiclos: 'Commits e issues por ciclo vêm das contagens por dia.',
+    sinHistorial: 'O histórico é gerado pela GitHub Action. Ainda não há dados para este app.',
+    cargandoHistorial: 'Carregando histórico…',
+    issuesIncompletos: p => `O histórico de issues ainda está carregando (${p} %). Ele se completa sozinho nas próximas execuções.`,
+    diasSinContar: n => (n === 1 ? '1 dia ainda sem contar.' : `${n} dias ainda sem contar.`),
+    historialDe: cuando => `Histórico gerado às ${cuando}`,
+    modoVivo: 'ao vivo',
+    verVivo: 'Ver a versão ao vivo (consulta a API pelo seu navegador)',
+    verAuto: 'Ver a versão automática (sem gastar API)',
+    releaseLectura: tag => `release ${tag}`,
+    sufijoIssues: n => (n === 1 ? 'issue fechada' : 'issues fechadas'),
+    actualizar: 'Atualizar',
+    actualizando: 'Atualizando…',
+    totales: 'Totais',
+    tituloGrafico: 'Commits desde a última release',
+    ariaGrafico: 'Commits desde a última release por app',
+    leyendaCommits: 'Commits desde a release',
+    leyendaIssues: 'Issues fechadas desde a release',
+    leyendaAlDia: d => `Em dia (≤ ${d} d)`,
+    leyendaAtrasado: d => `Atrasado (> ${d} d)`,
+    leyendaSin: 'Sem releases (commits de 30 d)',
+    tituloTabla: 'Números por app',
+    leyendaTabla: 'Toque em um cabeçalho para ordenar. Os dias contam a partir da publicação da última release.',
+    pie1: 'Uma GitHub Action coleta os dados a cada 10 minutos e a página só lê esse arquivo, então quem visita não gasta cota da API. Se o arquivo não existir ou tiver mais de uma hora e meia, a página consulta direto a API pública do GitHub (60 consultas por hora por IP) e verifica só os apps que receberam mudanças.',
+    fuenteArchivo: 'Dados do servidor, sem gastar API',
+    pie2: 'Commits desde a release: comparação entre a tag da release e o branch padrão. Issues fechadas: issues (sem pull requests) fechadas desde a publicação da release. Commits em 30 dias: branch padrão.',
+    columnas: { nombre: 'App', version: 'Versão', fecha: 'Publicada', dias: 'Dias', adelante: 'Commits desde a release', cerrados: 'Issues fechadas', bugs: 'Com bug', commits30: 'Commits 30 d', estrellas: 'Estrelas', forks: 'Forks' },
+    haceUnMomento: 'agora mesmo',
+    hace: tiempo => `há ${tiempo}`,
+    hoy: 'hoje',
+    consultando: (hechos, total) => `Consultando o GitHub · ${hechos} de ${total} apps`,
+    contando: (hechos, total) => `Contando issues fechadas · ${hechos} de ${total} apps`,
+    consultandoSolo: 'Consultando o GitHub…',
+    actualizado: (cuando, hace) => `Atualizado às ${cuando} · ${hace}`,
+    sinDatosTodavia: 'Ainda sem dados',
+    cupo: (restante, limite, reset) => `Cota da API: ${restante} de ${limite}, renova às ${reset}`,
+    cupoRenovado: limite => `Cota da API: renovada (${limite} por hora)`,
+    esperanCupo: n => (n === 1 ? '1 app aguarda cota' : `${n} apps aguardam cota`),
+    guardados: (cuando, hace) => `Mostrando os dados salvos às ${cuando} (${hace}).`,
+    sinGuardados: 'Ainda não há dados salvos neste navegador.',
+    sinCupo: (reset, datos) => `Sem cota da API até as ${reset}${datos ? ` · dados das ${datos}` : ''}`,
+    sinRed: guardados => `Sem conexão com o GitHub. ${guardados} Tento de novo quando a rede voltar.`,
+    errorGithub: (error, guardados) => `O GitHub retornou um erro (${error}). ${guardados}`,
+    datosViejos: (cuando, hace) => `Dados salvos: a última atualização real foi às ${cuando} (${hace}).`,
+    esperaBusqueda: reset => `continua às ${reset}`,
+    errorRepos: (lista, error) => `Não consegui ler ${lista}: ${error}. Mostrando os últimos dados salvos.`,
+    cifraCommits: 'Commits sem release',
+    cifraCommitsSub: n => (n === 1 ? 'em 1 app com release' : `em ${n} apps com release`),
+    cifraIssues: 'Issues fechadas desde a release',
+    cifraIssuesSub: n => `${n} com label bug`,
+    sinContarTodavia: 'ainda sem contar',
+    cifra30: 'Commits em 30 dias',
+    cifra30Sub: 'nos branches padrão',
+    cifraVieja: 'Release mais antiga',
+    sinDatos: 'sem dados',
+    sinReleases: 'sem releases',
+    en30: valor => `${valor} em 30 d`,
+    issuesSinContar: 'issues sem contar',
+    contandoIssues: 'contando issues…',
+    ningunIssue: 'nenhuma issue fechada',
+    issuesCerrados: (n, valor) => (n === 1 ? `${valor} issue fechada` : `${valor} issues fechadas`),
+    bug: valor => `${valor} bug`,
+    filaCargando: nombre => `${nombre}: carregando`,
+    filaRelease: (nombre, tag, commits, dias, issues) => `${nombre} ${tag}: ${commits} commits desde a release, ${dias}, ${issues}`,
+    filaSin: (nombre, commits) => `${nombre}: sem releases, ${commits} commits em 30 dias`,
+    tipCommits: 'Commits desde a release',
+    tipIssues: 'Issues fechadas',
+    tipSinContar: 'sem contar',
+    tip30: 'Commits em 30 dias',
+    tipPublicada: (fecha, hace) => `Publicada em ${fecha}, ${hace}`,
+    tipSinReleases: 'Sem releases publicadas',
+    tipSinDatos: 'Ainda sem dados',
+    tipDato: (cuando, hace) => `Dados de ${cuando} (${hace})`,
+    alDia: 'em dia',
+    atrasado: 'atrasado',
+  },
+};
+
+let idioma;
+let t;
+let numero;
+let fechaCorta;
+let fechaLarga;
+let hora;
+
+function localeDe(codigo) {
+  const etiquetas = navigator.languages?.length ? navigator.languages : [navigator.language];
+  const propia = etiquetas.find(etiqueta => String(etiqueta).slice(0, 2).toLowerCase() === codigo);
+  try {
+    return Intl.getCanonicalLocales(propia ?? LOCALES[codigo])[0];
+  } catch {
+    return LOCALES[codigo];
+  }
+}
+
+function detectarIdioma() {
+  try {
+    const elegido = localStorage.getItem(CLAVE_IDIOMA);
+    if (elegido in TEXTOS) return elegido;
+  } catch {}
+  const etiquetas = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const etiqueta of etiquetas) {
+    const codigo = String(etiqueta).slice(0, 2).toLowerCase();
+    if (codigo in TEXTOS) return codigo;
+  }
+  return 'en';
+}
+
+function usarIdioma(codigo) {
+  idioma = codigo;
+  t = TEXTOS[codigo];
+  const locale = localeDe(codigo);
+  numero = new Intl.NumberFormat(locale, { useGrouping: 'always' });
+  fechaCorta = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+  fechaLarga = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  hora = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
+  document.documentElement.lang = locale;
+  document.title = `CraftApps-Pulse · ${ORG}`;
+  document.querySelectorAll('[data-t]').forEach(nodo => {
+    const texto = t[nodo.dataset.t];
+    nodo.textContent = typeof texto === 'function' ? texto(DIAS_ATRASO) : texto;
+  });
+  document.querySelectorAll('[data-t-aria]').forEach(nodo => nodo.setAttribute('aria-label', t[nodo.dataset.tAria]));
+  $('#idioma').value = codigo;
+  const modo = $('#modo');
+  modo.hidden = !EN_VIVO;
+  modo.textContent = t.modoVivo;
+  const otra = $('#otra-version');
+  otra.textContent = EN_VIVO ? t.verAuto : t.verVivo;
+  otra.href = EN_VIVO ? './' : '?en-vivo';
+  if ($('#detalle')?.open) renderDetalle();
+}
+
+const $ = selector => document.querySelector(selector);
+const dormir = ms => new Promise(listo => setTimeout(listo, ms));
+const esc = texto => String(texto).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+class SinCupo extends Error {
+  constructor(recurso, reset) {
+    super('Sin cupo en la API de GitHub');
+    this.recurso = recurso;
+    this.reset = reset;
+  }
+}
+class ErrorRed extends Error {}
+
+const vacio = () => ({ etags: {}, repos: {}, org: null, cupo: {}, sinCupoHasta: null, novedades: {}, recientes: {} });
+let cache = leer();
+
+const estado = {
+  ocupado: false,
+  error: null,
+  esperaBusqueda: null,
+  progreso: null,
+  contando: null,
+  esperando: 0,
+  intento: 0,
+  orden: { col: 'adelante', dir: -1 },
+};
+
+const CLAVE_PREFS = 'tablero-storytold:prefs';
+const CRECER = 750;
+const ESCALON = 45;
+const PULSO = 7000;
+const OLA = 5000;
+const BRILLO = 3000;
+const DESTELLO = 2600;
+const VIDA_NOVEDAD = 30 * MIN;
+const VIDA_CAMBIO = 5 * MIN;
+const ANCHO_LETRA = 0.6;
+
+const efectos = {
+  crecerDesde: 0,
+  racha: 0,
+  brillo: {},
+  pendiente: { adelante: 0, cerrados: 0 },
+  destello: {},
+};
+
+const prefs = leerPrefs();
+
+function leerPrefs() {
+  const base = { sonido: true, efectos: !matchMedia('(prefers-reduced-motion: reduce)').matches };
+  try {
+    return { ...base, ...JSON.parse(localStorage.getItem(CLAVE_PREFS)) };
+  } catch {
+    return base;
+  }
+}
+
+function guardarPrefs() {
+  try {
+    localStorage.setItem(CLAVE_PREFS, JSON.stringify(prefs));
+  } catch {}
+}
+
+const audio = { ctx: null };
+
+function prepararAudio() {
+  if (!audio.ctx) {
+    const Contexto = window.AudioContext ?? window.webkitAudioContext;
+    if (!Contexto) return;
+    audio.ctx = new Contexto();
+  }
+  return audio.ctx.state === 'suspended' ? audio.ctx.resume() : Promise.resolve();
+}
+
+const tono = (base, semitonos) => base * 2 ** (semitonos / 12);
+
+const SONIDOS = {
+  moneda: paso => {
+    const f = tono(988, Math.min(paso * 2, 14));
+    return [{ f, d: 0.06 }, { f: f * 1.335, t: 0.06, d: 0.18 }];
+  },
+  sumar: paso => [{ f: tono(392, Math.min(paso, 12)), f2: tono(784, Math.min(paso, 12)), d: 0.14, tipo: 'triangle', v: 0.06 }],
+  carga: () => [{ f: 220, f2: 660, d: 0.35, tipo: 'triangle', v: 0.03 }],
+  release: () => [523, 659, 784, 1047, 1319]
+    .map((f, i) => ({ f, t: i * 0.085, d: i === 4 ? 0.4 : 0.11, v: 0.028 }))
+    .concat([{ f: 2093, t: 0.45, d: 0.5, tipo: 'triangle', v: 0.018 }]),
+  activar: () => [{ f: 660, d: 0.05 }, { f: 990, t: 0.05, d: 0.09 }],
+};
+
+function sonar(nombre, paso = 0) {
+  const ctx = audio.ctx;
+  if (!prefs.sonido || !ctx || ctx.state !== 'running' || document.hidden) return;
+  const inicio = ctx.currentTime + 0.01;
+  for (const { f, f2, t = 0, d, tipo = 'square', v = 0.03 } of SONIDOS[nombre](paso)) {
+    const oscilador = ctx.createOscillator();
+    const volumen = ctx.createGain();
+    oscilador.type = tipo;
+    oscilador.frequency.setValueAtTime(f, inicio + t);
+    if (f2) oscilador.frequency.exponentialRampToValueAtTime(f2, inicio + t + d);
+    volumen.gain.setValueAtTime(0.0001, inicio + t);
+    volumen.gain.exponentialRampToValueAtTime(v, inicio + t + 0.008);
+    volumen.gain.exponentialRampToValueAtTime(0.0001, inicio + t + d);
+    oscilador.connect(volumen).connect(ctx.destination);
+    oscilador.start(inicio + t);
+    oscilador.stop(inicio + t + d + 0.03);
+  }
+}
+
+function aplicarPrefs() {
+  for (const clave of ['sonido', 'efectos']) {
+    const boton = $(`#${clave}`);
+    boton.setAttribute('aria-pressed', String(prefs[clave]));
+    boton.setAttribute('aria-label', t[clave]);
+    boton.title = t[clave];
+  }
+}
+
+function leer() {
+  try {
+    const datos = JSON.parse(localStorage.getItem(CLAVE));
+    return datos ? { ...vacio(), ...datos } : vacio();
+  } catch {
+    return vacio();
+  }
+}
+
+function guardar() {
+  const limite = Date.now() - 3 * DIA;
+  for (const [url, entrada] of Object.entries(cache.etags)) {
+    if (entrada.usado < limite) delete cache.etags[url];
+  }
+  try {
+    localStorage.setItem(CLAVE, JSON.stringify(cache));
+  } catch {}
+}
+
+function anotarCupo(res) {
+  const recurso = res.headers.get('x-ratelimit-resource');
+  const restante = res.headers.get('x-ratelimit-remaining');
+  if (!recurso || restante === null) return;
+  cache.cupo[recurso] = {
+    limite: Number(res.headers.get('x-ratelimit-limit')),
+    restante: Number(restante),
+    reset: Number(res.headers.get('x-ratelimit-reset')) * 1000,
+  };
+}
+
+async function esperarCupo(recurso) {
+  const cupo = cache.cupo[recurso];
+  if (!cupo || cupo.restante > 0 || Date.now() > cupo.reset) return;
+  const espera = cupo.reset - Date.now() + 1500;
+  if (recurso === 'core' || espera > 90 * 1000) throw new SinCupo(recurso, cupo.reset);
+  estado.esperaBusqueda = cupo.reset;
+  render();
+  await dormir(espera);
+  estado.esperaBusqueda = null;
+}
+
+async function api(ruta, extraer) {
+  const url = API + ruta;
+  const recurso = ruta.startsWith('/search/') ? 'search' : 'core';
+  await esperarCupo(recurso);
+  const previo = cache.etags[url];
+  const headers = { Accept: 'application/vnd.github+json' };
+  if (previo) headers['If-None-Match'] = previo.etag;
+  let res;
+  try {
+    res = await fetch(url, { headers, cache: 'no-store' });
+  } catch {
+    throw new ErrorRed('Sin conexión');
+  }
+  anotarCupo(res);
+  if (res.status === 304 && previo) {
+    previo.usado = Date.now();
+    return previo.datos;
+  }
+  const agotado = cache.cupo[recurso]?.restante === 0 || res.headers.has('retry-after');
+  if ((res.status === 403 || res.status === 429) && agotado) {
+    const reintento = Number(res.headers.get('retry-after')) || 60;
+    throw new SinCupo(recurso, cache.cupo[recurso]?.restante === 0 ? cache.cupo[recurso].reset : Date.now() + reintento * 1000);
+  }
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const datos = extraer(await res.json(), res);
+  const etag = res.headers.get('etag');
+  if (etag) cache.etags[url] = { etag, datos, usado: Date.now() };
+  return datos;
+}
+
+async function leerCupo() {
+  let res;
+  try {
+    res = await fetch(`${API}/rate_limit`, { cache: 'no-store' });
+  } catch {
+    throw new ErrorRed('Sin conexión');
+  }
+  if (!res.ok) return;
+  const { resources } = await res.json();
+  for (const recurso of ['core', 'search']) {
+    const c = resources[recurso];
+    cache.cupo[recurso] = { limite: c.limit, restante: c.remaining, reset: c.reset * 1000 };
+  }
+}
+
+function contarPorLink(res, enPagina) {
+  const ultima = /[?&]page=(\d+)[^>]*>;\s*rel="last"/.exec(res.headers.get('link') ?? '');
+  return ultima ? Number(ultima[1]) : enPagina;
+}
+
+function desde30Dias() {
+  const dia = Math.floor((Date.now() - 30 * DIA) / DIA) * DIA;
+  return new Date(dia).toISOString().replace('.000Z', 'Z');
+}
+
+const CLAVE_TURNO = `${CLAVE}:turno`;
+const ARCHIVO_DATOS = 'data/estado.json';
+const VIGENCIA_ARCHIVO = 90 * MIN;
+const REVISION_COMPLETA = 60 * MIN;
+
+const vencio30 = r => !r?.commits30En || Date.now() - r.commits30En >= REVISION_COMPLETA;
+
+function necesitaRepaso(nombre, ahora) {
+  const r = cache.repos[nombre];
+  if (!r?.en || r.error || ahora - r.en >= REVISION_COMPLETA) return true;
+  const empujado = cache.org?.repos?.[nombre]?.empujado;
+  return !empujado || empujado !== r.empujado;
+}
+
+const costoRepo = nombre => 2 + (vencio30(cache.repos[nombre]) ? 1 : 0);
+
+function tomarTurno() {
+  try {
+    const otro = Number(localStorage.getItem(CLAVE_TURNO));
+    if (otro && Date.now() - otro < 2 * MIN) return false;
+    localStorage.setItem(CLAVE_TURNO, String(Date.now()));
+  } catch {}
+  return true;
+}
+
+function soltarTurno() {
+  try {
+    localStorage.removeItem(CLAVE_TURNO);
+  } catch {}
+}
+
+function renovarTurno() {
+  try {
+    localStorage.setItem(CLAVE_TURNO, String(Date.now()));
+  } catch {}
+}
+
+async function cargarArchivo() {
+  let datos;
+  try {
+    const res = await fetch(ARCHIVO_DATOS, { cache: 'no-cache' });
+    if (!res.ok) return null;
+    datos = await res.json();
+  } catch {
+    return null;
+  }
+  const generado = Date.parse(datos?.generado);
+  if (!generado || !datos.repos || Date.now() - generado > VIGENCIA_ARCHIVO) return null;
+
+  const previo = instantanea();
+  const issuesAntes = Object.fromEntries(REPOS.map(nombre => [nombre, { tag: cache.repos[nombre]?.release?.tag, cerrados: cache.repos[nombre]?.cerrados }]));
+  const lote = REPOS.filter(nombre => datos.repos[nombre] && !datos.repos[nombre].error && cache.repos[nombre]?.generado !== generado);
+  const org = {};
+  for (const nombre of REPOS) {
+    const d = datos.repos[nombre];
+    if (!d) continue;
+    if (d.error) {
+      cache.repos[nombre] = { ...cache.repos[nombre], error: d.error };
+      continue;
+    }
+    cache.repos[nombre] = {
+      release: d.release,
+      adelante: d.adelante,
+      commits30: d.commits30,
+      cerrados: d.cerrados ?? undefined,
+      bugs: d.bugs ?? undefined,
+      empujado: d.empujado,
+      en: generado,
+      visto: generado,
+      generado,
+      error: null,
+    };
+    org[nombre] = { nombre, rama: d.rama, estrellas: d.estrellas, forks: d.forks, url: d.url, empujado: d.empujado };
+  }
+  cache.org = { en: generado, repos: org };
+  cache.fuente = 'archivo';
+  cache.sinCupoHasta = null;
+  return { previo, issuesAntes, lote };
+}
+
+function celebrarIssues(issuesAntes, lote) {
+  const finCrecer = efectos.crecerDesde + CRECER + REPOS.length * ESCALON + 200;
+  for (const nombre of lote) {
+    const antes = issuesAntes[nombre];
+    const ahora = cache.repos[nombre];
+    if (antes.cerrados == null || antes.tag !== ahora.release?.tag || !(ahora.cerrados > antes.cerrados)) continue;
+    lanzarCambio({ nombre, tipo: 'cerrados', delta: ahora.cerrados - antes.cerrados }, finCrecer - Date.now());
+  }
+}
+
+async function cargarOrg() {
+  const repos = {};
+  for (let pagina = 1; pagina <= 3; pagina++) {
+    const lista = await api(`/orgs/${ORG}/repos?per_page=100&sort=pushed&page=${pagina}`, json => json.map(r => ({
+      nombre: r.name,
+      rama: r.default_branch,
+      estrellas: r.stargazers_count,
+      forks: r.forks_count,
+      url: r.html_url,
+      empujado: r.pushed_at,
+    })));
+    if (!lista) break;
+    for (const repo of lista) repos[repo.nombre] = repo;
+    if (lista.length < 100 || REPOS.every(nombre => repos[nombre])) break;
+  }
+  cache.org = { en: Date.now(), repos };
+}
+
+async function cargarRepo(nombre) {
+  const antes = cache.repos[nombre];
+  const rama = cache.org?.repos?.[nombre]?.rama ?? 'HEAD';
+  const base = `/repos/${ORG}/${nombre}`;
+  try {
+    const release = await api(`${base}/releases/latest`, json => ({ tag: json.tag_name, fecha: json.published_at, url: json.html_url }));
+    const adelante = release
+      ? await api(`${base}/compare/${encodeURI(release.tag)}...${encodeURI(rama)}?per_page=1&page=2`, json => json.ahead_by)
+      : null;
+    const vence30 = vencio30(antes);
+    const commits30 = vence30
+      ? await api(`${base}/commits?since=${desde30Dias()}&per_page=1`, (json, res) => contarPorLink(res, json.length))
+      : antes.commits30;
+    const mismaRelease = antes?.release?.tag === release?.tag;
+    cache.repos[nombre] = {
+      release,
+      adelante,
+      commits30,
+      commits30En: vence30 ? Date.now() : antes?.commits30En,
+      cerrados: mismaRelease ? antes?.cerrados : undefined,
+      bugs: mismaRelease ? antes?.bugs : undefined,
+      empujado: cache.org?.repos?.[nombre]?.empujado ?? null,
+      en: Date.now(),
+      visto: Date.now(),
+      error: null,
+    };
+  } catch (e) {
+    if (e instanceof SinCupo || e instanceof ErrorRed) throw e;
+    cache.repos[nombre] = { ...antes, error: e.message };
+  } finally {
+    if (estado.progreso) estado.progreso.hechos++;
+    render();
+  }
+}
+
+async function cargarIssues(nombre) {
+  const release = cache.repos[nombre]?.release;
+  if (!release) return;
+  const consulta = `repo:${ORG}/${nombre} is:issue is:closed closed:>=${release.fecha}`;
+  const etiquetas = ETIQUETAS_BUG.map(etiqueta => `"${etiqueta}"`).join(',');
+  const total = json => json.total_count;
+  const cerrados = await api(`/search/issues?per_page=1&q=${encodeURIComponent(consulta)}`, total);
+  const antes = cache.repos[nombre].cerrados;
+  const bugsAntes = cache.repos[nombre].bugs;
+  const bugs = !cerrados ? 0
+    : cerrados === antes && bugsAntes != null ? bugsAntes
+    : await api(`/search/issues?per_page=1&q=${encodeURIComponent(`${consulta} label:${etiquetas}`)}`, total);
+  Object.assign(cache.repos[nombre], { cerrados, bugs, errorIssues: null });
+  if (antes != null && cerrados > antes) {
+    const finCrecer = efectos.crecerDesde + CRECER + REPOS.length * ESCALON + 200;
+    lanzarCambio({ nombre, tipo: 'cerrados', delta: cerrados - antes }, finCrecer - Date.now());
+  }
+}
+
+function instantanea() {
+  return Object.fromEntries(REPOS.map(nombre => {
+    const r = cache.repos[nombre];
+    return [nombre, r && 'release' in r ? { tag: r.release?.tag ?? null, adelante: r.adelante ?? null } : null];
+  }));
+}
+
+function sumasVigentes(excluir = []) {
+  const ahora = Date.now();
+  const lista = [];
+  for (const [nombre, tipos] of Object.entries(cache.recientes)) {
+    for (const [tipo, reciente] of Object.entries(tipos)) {
+      const nuevo = excluir.some(c => c.nombre === nombre && c.tipo === tipo);
+      if (reciente.hasta > ahora && !nuevo) lista.push({ nombre, tipo, delta: reciente.delta, repetir: true });
+    }
+  }
+  return lista;
+}
+
+function programarSumas(lista) {
+  const orden = filas().sort(ordenGrafico).map(f => f.nombre);
+  lista
+    .sort((a, b) => orden.indexOf(a.nombre) - orden.indexOf(b.nombre))
+    .forEach((cambio, k) => {
+      const finFila = efectos.crecerDesde + orden.indexOf(cambio.nombre) * ESCALON + CRECER;
+      lanzarCambio(cambio, finFila + k * 180 - Date.now());
+    });
+}
+
+function celebrarRefresco(previo, lote, manual) {
+  if (!lote.length && !manual) return;
+  const cambios = [];
+  let lanzamiento = false;
+  for (const nombre of lote) {
+    const antes = previo[nombre];
+    const ahora = cache.repos[nombre];
+    if (!antes || !ahora?.release || ahora.error) continue;
+    if (antes.tag !== ahora.release.tag) {
+      cache.novedades[nombre] = { tag: ahora.release.tag, desde: Date.now() };
+      lanzamiento = true;
+    } else if (antes.adelante != null && ahora.adelante > antes.adelante) {
+      cambios.push({ nombre, tipo: 'adelante', delta: ahora.adelante - antes.adelante });
+    }
+  }
+  efectos.crecerDesde = Date.now();
+  const repetidas = sumasVigentes(cambios);
+  if (lanzamiento) sonar('release');
+  else if (!cambios.length && !repetidas.length && manual) sonar('carga');
+  programarSumas([...cambios, ...repetidas]);
+}
+
+function marcarReciente({ nombre, tipo, delta }) {
+  const previo = cache.recientes[nombre]?.[tipo];
+  const acumulado = previo && previo.hasta > Date.now() ? previo.delta : 0;
+  cache.recientes[nombre] = { ...cache.recientes[nombre], [tipo]: { delta: acumulado + delta, hasta: Date.now() + VIDA_CAMBIO } };
+}
+
+function irAFila(nombre) {
+  const fila = $('#grafico').querySelector(`.fila[data-nombre="${CSS.escape(nombre)}"]`);
+  if (!fila) return;
+  const suave = prefs.efectos && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fila.scrollIntoView({ block: 'center', behavior: suave ? 'smooth' : 'auto' });
+  fila.focus({ preventScroll: true });
+}
+
+function lanzarCambio(cambio, espera) {
+  const paso = efectos.racha++;
+  if (!prefs.efectos) {
+    if (cambio.repetir) return;
+    marcarReciente(cambio);
+    sonar('moneda', paso);
+    render();
+    return;
+  }
+  const desde = Date.now() + Math.max(0, espera);
+  efectos.pendiente[cambio.tipo] += cambio.delta;
+  efectos.brillo[cambio.nombre] = { ...efectos.brillo[cambio.nombre], [cambio.tipo]: { desde, hasta: desde + BRILLO } };
+  renderResumen();
+  setTimeout(() => {
+    if (!cambio.repetir) marcarReciente(cambio);
+    renderGrafico();
+    renderTabla();
+    sonar('moneda', paso);
+    flotar(cambio, () => {
+      efectos.pendiente[cambio.tipo] -= cambio.delta;
+      efectos.destello[cambio.tipo] = { desde: Date.now(), hasta: Date.now() + DESTELLO };
+      sonar('sumar', paso);
+      renderResumen();
+    });
+  }, Math.max(0, espera));
+}
+
+function flotar({ nombre, tipo, delta }, alLlegar) {
+  const fila = $('#grafico').querySelector(`.fila[data-nombre="${CSS.escape(nombre)}"]`);
+  const ancla = fila?.querySelector(tipo === 'adelante' ? '.t-valor' : '.t-issues');
+  const destino = document.querySelector(`.cifra[data-cifra="${tipo}"] .cifra-num`);
+  if (!ancla || !destino) return alLlegar();
+  const inicio = ancla.getBoundingClientRect();
+  const fin = destino.getBoundingClientRect();
+  const x = inicio.right + 8;
+  const y = inicio.top + inicio.height / 2 - 11;
+  const nodo = document.createElement('span');
+  nodo.className = `flotante flotante-${tipo}`;
+  nodo.textContent = `+${numero.format(delta)}`;
+  nodo.setAttribute('aria-hidden', 'true');
+  nodo.style.left = `${x}px`;
+  nodo.style.top = `${y}px`;
+  document.body.append(nodo);
+  const visible = fin.bottom > 0 && fin.top < innerHeight;
+  const llegada = visible
+    ? { transform: `translate(${fin.left + 16 - x}px, ${fin.top + fin.height / 2 - 11 - y}px) scale(0.75)`, opacity: 0.85 }
+    : { transform: 'translate(0, -64px) scale(0.9)', opacity: 0 };
+  nodo.animate([
+    { transform: 'translate(0, 6px) scale(0.4)', opacity: 0 },
+    { transform: 'translate(0, -14px) scale(1.25)', opacity: 1, offset: 0.18 },
+    { transform: 'translate(0, -18px) scale(1)', opacity: 1, offset: 0.4 },
+    llegada,
+  ], { duration: 1500, easing: 'cubic-bezier(0.45, 0, 0.25, 1)', fill: 'forwards' }).onfinish = () => {
+    nodo.remove();
+    alLlegar();
+  };
+}
+
+function verNovedad(nombre) {
+  if (!cache.novedades[nombre]) return false;
+  delete cache.novedades[nombre];
+  guardar();
+  renderGrafico();
+  return true;
+}
+
+let repintado = 0;
+
+function programarRepintado() {
+  const instantes = [efectos.crecerDesde + CRECER + REPOS.length * ESCALON + 300];
+  for (const tipos of Object.values(efectos.brillo)) for (const b of Object.values(tipos)) instantes.push(b.hasta);
+  for (const d of Object.values(efectos.destello)) instantes.push(d.hasta);
+  for (const tipos of Object.values(cache.recientes)) for (const r of Object.values(tipos)) instantes.push(r.hasta);
+  for (const n of Object.values(cache.novedades)) instantes.push(n.desde + OLA + 200, n.desde + VIDA_NOVEDAD);
+  const ahora = Date.now();
+  const proximo = Math.min(...instantes.filter(v => v > ahora));
+  clearTimeout(repintado);
+  if (Number.isFinite(proximo)) repintado = setTimeout(() => {
+    renderGrafico();
+    renderResumen();
+    renderTabla();
+  }, proximo - ahora + 60);
+}
+
+const retraso = desde => `animation-delay:${Math.round(desde - Date.now())}ms`;
+
+async function enParalelo(items, limite, tarea) {
+  const cola = [...items];
+  let fallo = null;
+  const trabajador = async () => {
+    while (cola.length && !fallo) {
+      try {
+        await tarea(cola.shift());
+      } catch (e) {
+        fallo = e;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limite, cola.length) }, trabajador));
+  if (fallo) throw fallo;
+}
+
+let reintentoCupo = null;
+
+function avisarSinCupo(reset) {
+  cache.sinCupoHasta = reset;
+  clearTimeout(reintentoCupo);
+  const espera = reset - Date.now() + 5000;
+  if (espera < 70 * MIN) reintentoCupo = setTimeout(() => actualizar(), Math.max(espera, 5000));
+}
+
+async function actualizar(manual = false) {
+  if (estado.ocupado || (!manual && document.hidden)) return;
+  cache = leer();
+  if (!tomarTurno()) {
+    render();
+    return;
+  }
+  estado.ocupado = true;
+  estado.error = null;
+  estado.intento = Date.now();
+  efectos.racha = 0;
+  render();
+  try {
+    const archivo = EN_VIVO ? null : await cargarArchivo();
+    if (archivo) {
+      celebrarRefresco(archivo.previo, archivo.lote, manual);
+      celebrarIssues(archivo.issuesAntes, archivo.lote);
+      return;
+    }
+    cache.fuente = 'api';
+    await leerCupo();
+    const previo = instantanea();
+    const ahora = Date.now();
+    let libre = (cache.cupo.core?.restante ?? 60) - RESERVA;
+    const edadOrg = cache.org ? ahora - cache.org.en : Infinity;
+    const orgVencida = edadOrg >= INTERVALO - MIN;
+    if ((orgVencida || (manual && edadOrg >= MIN)) && libre >= 1) {
+      await cargarOrg();
+      libre -= 1;
+    }
+    const orgAlDia = cache.org && Date.now() - cache.org.en < INTERVALO;
+    const pendientes = REPOS
+      .filter(nombre => !orgAlDia || necesitaRepaso(nombre, ahora))
+      .sort((a, b) => (cache.repos[a]?.en ?? 0) - (cache.repos[b]?.en ?? 0));
+    const lote = [];
+    for (const nombre of pendientes) {
+      if (costoRepo(nombre) > libre) break;
+      lote.push(nombre);
+      libre -= costoRepo(nombre);
+    }
+    estado.esperando = pendientes.length - lote.length;
+    if (orgAlDia) {
+      for (const nombre of REPOS) if (cache.repos[nombre]?.en && !pendientes.includes(nombre)) cache.repos[nombre].visto = Date.now();
+    }
+    if ((orgVencida && libre < 1 && !orgAlDia) || (pendientes.length && !lote.length)) avisarSinCupo(cache.cupo.core.reset);
+    else cache.sinCupoHasta = null;
+
+    estado.progreso = { hechos: 0, total: lote.length };
+    await enParalelo(lote, CONCURRENCIA, cargarRepo);
+    estado.progreso = null;
+    celebrarRefresco(previo, lote, manual);
+    guardar();
+
+    const porContar = REPOS.filter(nombre => cache.repos[nombre]?.release);
+    estado.contando = { hechos: 0, total: porContar.length };
+    for (const nombre of porContar) {
+      renovarTurno();
+      render();
+      try {
+        await cargarIssues(nombre);
+      } catch (e) {
+        if (e instanceof ErrorRed) throw e;
+        cache.repos[nombre].errorIssues = e instanceof SinCupo ? 'cupo' : e.message;
+        if (e instanceof SinCupo) break;
+      }
+      estado.contando.hechos++;
+      guardar();
+    }
+  } catch (e) {
+    if (e instanceof SinCupo) {
+      avisarSinCupo(e.reset);
+    } else if (e instanceof ErrorRed) {
+      estado.error = 'red';
+    } else {
+      estado.error = e.message;
+    }
+  } finally {
+    soltarTurno();
+    estado.ocupado = false;
+    estado.progreso = null;
+    estado.contando = null;
+    estado.esperaBusqueda = null;
+    guardar();
+    render();
+    if ($('#detalle').open) renderDetalle();
+  }
+}
+
+function filas() {
+  const ahora = Date.now();
+  return REPOS.map(nombre => {
+    const r = cache.repos[nombre] ?? {};
+    const org = cache.org?.repos?.[nombre] ?? {};
+    const cargado = 'release' in r;
+    const release = r.release ?? null;
+    const dias = release ? Math.max(0, Math.floor((ahora - Date.parse(release.fecha)) / DIA)) : null;
+    return {
+      nombre,
+      url: org.url ?? `https://github.com/${ORG}/${nombre}`,
+      release,
+      dias,
+      estado: !cargado ? 'pendiente' : !release ? 'sin' : dias > DIAS_ATRASO ? 'atrasado' : 'al-dia',
+      adelante: r.adelante ?? null,
+      commits30: r.commits30 ?? null,
+      cerrados: release ? r.cerrados : null,
+      bugs: release && r.cerrados !== undefined ? r.bugs ?? null : null,
+      valor: release ? r.adelante ?? null : r.commits30 ?? null,
+      estrellas: org.estrellas ?? null,
+      forks: org.forks ?? null,
+      en: r.en ?? null,
+      error: r.error ?? null,
+      errorIssues: r.errorIssues ?? null,
+      novedad: release && cache.novedades[nombre]?.tag === release.tag ? cache.novedades[nombre] : null,
+      cambio: Object.fromEntries(['adelante', 'cerrados'].map(tipo => {
+        const reciente = cache.recientes[nombre]?.[tipo];
+        return [tipo, reciente && reciente.hasta > ahora ? reciente.delta : 0];
+      })),
+    };
+  });
+}
+
+function haceCuanto(instante) {
+  const minutos = Math.round((Date.now() - instante) / MIN);
+  if (minutos < 1) return t.haceUnMomento;
+  if (minutos < 60) return t.hace(`${minutos} min`);
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return t.hace(`${horas} h`);
+  return t.hace(`${Math.floor(horas / 24)} d`);
+}
+
+function cuando(instante) {
+  const fecha = new Date(instante);
+  const hoy = new Date().toDateString() === fecha.toDateString();
+  return hoy ? hora.format(fecha) : `${fechaCorta.format(fecha)}, ${hora.format(fecha)}`;
+}
+
+const textoDias = dias => (dias === 0 ? t.hoy : t.hace(`${numero.format(dias)} d`));
+const textoIssues = n => t.issuesCerrados(n, numero.format(n));
+
+function ultimaActualizacion() {
+  return Math.max(0, ...REPOS.map(nombre => cache.repos[nombre]?.visto ?? cache.repos[nombre]?.en ?? 0)) || null;
+}
+
+function formaEstado(tipo, cx, cy) {
+  if (tipo === 'al-dia') return `<circle class="f-ok" cx="${cx}" cy="${cy}" r="4.5"/>`;
+  if (tipo === 'atrasado') return `<path class="f-atraso" d="M${cx} ${cy - 5}L${cx + 5} ${cy + 4}H${cx - 5}Z"/>`;
+  if (tipo === 'sin') return `<rect class="f-sin" x="${cx - 4}" y="${cy - 4}" width="8" height="8"/>`;
+  return '';
+}
+
+function render() {
+  renderCabecera();
+  renderAvisos();
+  renderResumen();
+  renderGrafico();
+  renderTabla();
+}
+
+function renderCabecera() {
+  const ultima = ultimaActualizacion();
+  let texto;
+  if (estado.progreso) texto = t.consultando(estado.progreso.hechos, estado.progreso.total);
+  else if (estado.contando) texto = t.contando(estado.contando.hechos, estado.contando.total) + (estado.esperaBusqueda ? ` · ${t.esperaBusqueda(hora.format(estado.esperaBusqueda))}` : '');
+  else if (estado.ocupado) texto = t.consultandoSolo;
+  else if (ultima) texto = t.actualizado(cuando(ultima), haceCuanto(ultima));
+  else texto = t.sinDatosTodavia;
+  $('#meta-estado').textContent = texto;
+
+  const cupo = cache.cupo.core;
+  let textoCupo = '';
+  if (cache.fuente === 'archivo') textoCupo = t.fuenteArchivo;
+  else if (cupo && Date.now() < cupo.reset) textoCupo = t.cupo(cupo.restante, cupo.limite, hora.format(cupo.reset));
+  else if (cupo) textoCupo = t.cupoRenovado(cupo.limite);
+  if (estado.esperando) textoCupo += ` · ${t.esperanCupo(estado.esperando)}`;
+  $('#meta-cupo').textContent = textoCupo;
+
+  const boton = $('#actualizar');
+  boton.disabled = estado.ocupado;
+  boton.textContent = estado.ocupado ? t.actualizando : t.actualizar;
+}
+
+function renderAvisos() {
+  const ultima = ultimaActualizacion();
+  const guardados = ultima ? t.guardados(cuando(ultima), haceCuanto(ultima)) : t.sinGuardados;
+  const avisos = [];
+  const sinCupo = cache.sinCupoHasta && cache.sinCupoHasta > Date.now();
+  const nota = $('#nota-cupo');
+  const textoNota = sinCupo ? t.sinCupo(hora.format(cache.sinCupoHasta), ultima ? cuando(ultima) : null) : '';
+  if (nota.textContent !== textoNota) nota.textContent = textoNota;
+  nota.hidden = !sinCupo;
+  if (estado.error === 'red') {
+    avisos.push(['error', t.sinRed(guardados)]);
+  } else if (estado.error) {
+    avisos.push(['error', t.errorGithub(estado.error, guardados)]);
+  }
+  const limiteViejos = cache.fuente === 'archivo' ? 45 * MIN : 2 * INTERVALO;
+  if (!avisos.length && !sinCupo && !estado.ocupado && ultima && Date.now() - ultima > limiteViejos) {
+    avisos.push(['neutro', t.datosViejos(cuando(ultima), haceCuanto(ultima))]);
+  }
+  const conError = filas().filter(f => f.error);
+  if (conError.length) {
+    avisos.push(['error', t.errorRepos(conError.map(f => f.nombre).join(', '), conError[0].error)]);
+  }
+  const html = avisos.map(([tipo, texto]) => `<p class="aviso aviso-${tipo}">${esc(texto)}</p>`).join('');
+  const caja = $('#avisos');
+  if (caja.innerHTML !== html) caja.innerHTML = html;
+}
+
+let ultimoResumen = '';
+
+function renderResumen() {
+  const todas = filas();
+  const conRelease = todas.filter(f => f.release);
+  const suma = (lista, campo) => lista.reduce((total, f) => total + (f[campo] ?? 0), 0);
+  const hay = (lista, campo) => lista.some(f => f[campo] != null);
+  const masVieja = conRelease.reduce((vieja, f) => (!vieja || f.dias > vieja.dias ? f : vieja), null);
+  const bugs = suma(conRelease, 'bugs');
+  const total = campo => numero.format(suma(conRelease, campo) - efectos.pendiente[campo]);
+  const cifras = [
+    ['adelante', t.cifraCommits, hay(conRelease, 'adelante') ? total('adelante') : '—', t.cifraCommitsSub(conRelease.length)],
+    ['cerrados', t.cifraIssues, hay(conRelease, 'cerrados') ? total('cerrados') : '—', hay(conRelease, 'bugs') ? t.cifraIssuesSub(numero.format(bugs)) : t.sinContarTodavia],
+    ['commits30', t.cifra30, hay(todas, 'commits30') ? numero.format(suma(todas, 'commits30')) : '—', t.cifra30Sub],
+    ['vieja', t.cifraVieja, masVieja ? textoDias(masVieja.dias) : '—', masVieja ? `${masVieja.nombre} ${masVieja.release.tag}` : t.sinDatos],
+  ];
+  const ahora = Date.now();
+  const origenes = clave => {
+    const cambiadas = todas.filter(f => f.cambio[clave] > 0).sort((a, b) => b.cambio[clave] - a.cambio[clave]);
+    if (!cambiadas.length) return '';
+    return `<span class="origenes">${cambiadas.map(f => `<button type="button" class="origen" data-ir="${esc(f.nombre)}" aria-label="${esc(t.irA(f.nombre))}">+${esc(numero.format(f.cambio[clave]))} ${esc(f.nombre)}</button>`).join('')}</span>`;
+  };
+  const html = cifras.map(([clave, titulo, valor, sub]) => {
+    const destello = prefs.efectos && efectos.destello[clave]?.hasta > ahora ? efectos.destello[clave] : null;
+    const lista = clave in efectos.pendiente ? origenes(clave) : '';
+    return `
+    <div class="cifra" data-cifra="${clave}">
+      <p class="cifra-tit">${esc(titulo)}</p>
+      <p class="cifra-num${destello ? ' destello' : ''}"${destello ? ` style="${retraso(destello.desde)}"` : ''}>${esc(valor)}</p>
+      <p class="cifra-sub">${lista || esc(sub)}</p>
+    </div>`;
+  }).join('');
+  if (html.replace(/animation-delay:-?\d+ms/g, '') !== ultimoResumen) {
+    ultimoResumen = html.replace(/animation-delay:-?\d+ms/g, '');
+    $('#resumen').innerHTML = html;
+  }
+  programarRepintado();
+}
+
+function marcas(maximo, cantidad) {
+  const bruto = Math.max(maximo, 1) / cantidad;
+  const magnitud = 10 ** Math.floor(Math.log10(bruto));
+  const f = bruto / magnitud;
+  const paso = Math.max(1, (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * magnitud);
+  const tope = Math.ceil(Math.max(maximo, 1) / paso) * paso;
+  const lista = [];
+  for (let v = 0; v <= tope + paso / 2; v += paso) lista.push(Math.round(v));
+  return lista;
+}
+
+function ordenGrafico(a, b) {
+  const grupo = f => (f.estado === 'pendiente' || f.valor == null ? 2 : f.estado === 'sin' ? 1 : 0);
+  return grupo(a) - grupo(b) || (b.valor ?? 0) - (a.valor ?? 0) || a.nombre.localeCompare(b.nombre);
+}
+
+function barra(x, y, ancho, alto, radio) {
+  if (ancho <= 0) return '';
+  const r = Math.min(radio, ancho, alto / 2);
+  return `M${x},${y}h${ancho - r}a${r},${r} 0 0 1 ${r},${r}v${alto - 2 * r}a${r},${r} 0 0 1 ${-r},${r}h${-(ancho - r)}z`;
+}
+
+let filasGrafico = [];
+
+function renderGrafico() {
+  const caja = $('#grafico');
+  const ancho = Math.floor(caja.clientWidth);
+  if (!ancho) return;
+  const ahora = Date.now();
+  for (const [nombre, novedad] of Object.entries(cache.novedades)) {
+    if (ahora - novedad.desde > VIDA_NOVEDAD || cache.repos[nombre]?.release?.tag !== novedad.tag) delete cache.novedades[nombre];
+  }
+  for (const [nombre, tipos] of Object.entries(cache.recientes)) {
+    if (Object.values(tipos).every(reciente => reciente.hasta <= ahora)) delete cache.recientes[nombre];
+  }
+  const enfocada = document.activeElement?.closest?.('.fila')?.dataset.nombre;
+  const angosto = ancho < 640;
+  const lista = filas().sort(ordenGrafico);
+  filasGrafico = lista;
+  const animar = prefs.efectos;
+  const creciendo = animar && ahora < efectos.crecerDesde + CRECER + lista.length * ESCALON + 300;
+  const anim = (clase, desde) => (creciendo ? [` ${clase}`, ` style="${retraso(desde)}"`] : ['', '']);
+  const maximo = Math.max(1, ...lista.flatMap(f => [f.valor ?? 0, f.cerrados ?? 0]));
+  const ticks = marcas(maximo, angosto ? 3 : 6);
+  const tope = ticks[ticks.length - 1];
+  const g = angosto
+    ? { izq: 0, der: 0, etiqueta: 120, alto: 70, arriba: 26 }
+    : { izq: 172, der: 120, etiqueta: 140, alto: 52, arriba: 30 };
+  const anchoPlot = Math.max(40, ancho - g.izq - g.der - g.etiqueta);
+  const x = v => g.izq + (v / tope) * anchoPlot;
+  const altoTotal = g.arriba + lista.length * g.alto + 2;
+  const fondoEje = altoTotal - 2;
+
+  const tramos = angosto
+    ? [[g.arriba - 6, g.arriba], ...lista.map((f, i) => [g.arriba + i * g.alto + 21, g.arriba + i * g.alto + 57])]
+    : [[g.arriba - 6, fondoEje]];
+  const eje = !lista.some(f => f.valor != null) ? '' : ticks.map((v, i) => {
+    const ancla = i === 0 && g.izq < 12 ? 'start' : 'middle';
+    const lineas = tramos.map(([y1, y2]) => `<line class="rejilla${v === 0 ? ' rejilla-cero' : ''}" x1="${x(v) + 0.5}" x2="${x(v) + 0.5}" y1="${y1}" y2="${y2}"/>`).join('');
+    return `${lineas}<text class="t-eje" x="${x(v)}" y="${g.arriba - 12}" text-anchor="${ancla}">${numero.format(v)}</text>`;
+  }).join('');
+
+  const filasSvg = lista.map((f, i) => {
+    const y0 = g.arriba + i * g.alto;
+    const p = angosto
+      ? { nombre: y0 + 17, version: y0 + 17, barra: y0 + 25, altoBarra: 12, valor: y0 + 35, issues: y0 + 44, altoIssues: 6, textoIssues: y0 + 51.5, dias: y0 + 17, fecha: null, forma: y0 + 12 }
+      : { nombre: y0 + 21, version: y0 + 38, barra: y0 + 9, altoBarra: 14, valor: y0 + 20.5, issues: y0 + 30, altoIssues: 7, textoIssues: y0 + 38, dias: y0 + 21, fecha: y0 + 38, forma: y0 + 17 };
+    const inicioFila = efectos.crecerDesde + i * ESCALON;
+    const novedad = f.novedad;
+    const ola = novedad && animar && ahora < novedad.desde + OLA;
+    const letras = (texto, x0, y, clase, tamano, desfase) => [...texto].map((letra, k) =>
+      `<text class="${clase} ola" x="${(x0 + k * tamano * ANCHO_LETRA).toFixed(1)}" y="${y}" style="${retraso(novedad.desde + (desfase + k) * 70)}">${esc(letra)}</text>`).join('');
+    let etiquetaNombre;
+    if (ola) {
+      etiquetaNombre = letras(f.nombre, 0, p.nombre, 't-nombre', 13.5, 0) + (angosto
+        ? letras(f.release.tag, f.nombre.length * 13.5 * ANCHO_LETRA + 8, p.nombre, 't-sub', 11.5, f.nombre.length)
+        : letras(f.release.tag, 0, p.version, 't-sub', 11.5, 2));
+    } else {
+      etiquetaNombre = angosto
+        ? `<text class="t-nombre" x="0" y="${p.nombre}">${esc(f.nombre)}${f.release ? `<tspan class="t-sub" dx="8">${esc(f.release.tag)}</tspan>` : ''}</text>`
+        : `<text class="t-nombre" x="0" y="${p.nombre}">${esc(f.nombre)}</text>
+           <text class="t-sub" x="0" y="${p.version}">${esc(f.release ? f.release.tag : f.estado === 'sin' ? t.sinReleases : '')}</text>`;
+    }
+
+    let marcasFila = '';
+    if (f.estado === 'pendiente' || f.valor == null) {
+      const largo = f.error ? 0 : anchoPlot * (0.25 + ((i * 37) % 50) / 100);
+      marcasFila = f.error
+        ? `<text class="t-issues" x="${g.izq}" y="${p.valor}">${esc(t.sinDatos)}</text>`
+        : `<path class="esqueleto" d="${barra(g.izq, p.barra, largo, p.altoBarra, 3)}"/>`;
+    } else {
+      const fin = x(f.valor);
+      const largo = Math.max(f.valor > 0 ? 2 : 0, fin - g.izq);
+      const clase = f.estado === 'sin' ? 'barra-sin' : 'barra';
+      const valorTexto = f.estado === 'sin' ? t.en30(numero.format(f.valor)) : numero.format(f.valor);
+      const forma = barra(g.izq, p.barra, largo, p.altoBarra, 3);
+      const brillo = efectos.brillo[f.nombre];
+      const [claseBarra, estiloBarra] = anim('crece', inicioFila);
+      const [claseValor, estiloValor] = anim('aparece', inicioFila + CRECER - 150);
+      let barraSvg = `<path class="${clase}${claseBarra}${f.cambio.adelante ? ' marcada' : ''}" d="${forma}"${estiloBarra}/>`;
+      if (animar && !creciendo && clase === 'barra' && largo > 24) {
+        const fase = (((ahora - i * 110) % PULSO) + PULSO) % PULSO;
+        barraSvg += `<clipPath id="corte-${i}"><path d="${forma}"/></clipPath>
+          <g clip-path="url(#corte-${i})"><rect class="pulso" x="${g.izq - 70}" y="${p.barra}" width="70" height="${p.altoBarra}" fill="url(#grad-pulso)" style="--largo:${(largo + 70).toFixed(1)}px;animation-delay:-${Math.round(fase)}ms"/></g>`;
+      }
+      if (animar && brillo?.adelante?.hasta > ahora) barraSvg = `<g class="brilla" style="${retraso(brillo.adelante.desde)}">${barraSvg}</g>`;
+      marcasFila = `${barraSvg}
+        <text class="t-valor${claseValor}" x="${g.izq + largo + 6}" y="${p.valor}"${estiloValor}>${esc(valorTexto)}${f.cambio.adelante ? `<tspan class="t-delta"> +${esc(numero.format(f.cambio.adelante))}</tspan>` : ''}</text>`;
+      if (f.release) {
+        const [claseIssues, estiloIssues] = anim('crece', inicioFila + 120);
+        const [claseTexto, estiloTexto] = anim('aparece', inicioFila + CRECER - 30);
+        let texto;
+        let finIssues = g.izq;
+        let issuesSvg = '';
+        if (f.cerrados === undefined) texto = esc(f.errorIssues ? t.issuesSinContar : t.contandoIssues);
+        else if (f.cerrados === 0) texto = esc(t.ningunIssue);
+        else {
+          finIssues = g.izq + Math.max(2, x(f.cerrados) - g.izq);
+          const deltaIssues = f.cambio.cerrados ? `<tspan class="t-delta"> +${esc(numero.format(f.cambio.cerrados))}</tspan>` : '';
+          texto = `<tspan class="t-issues-num">${esc(numero.format(f.cerrados))}</tspan> ${esc(t.sufijoIssues(f.cerrados))}${deltaIssues}${f.bugs ? `<tspan class="t-tenue"> · ${esc(t.bug(numero.format(f.bugs)))}</tspan>` : ''}`;
+          issuesSvg = `<path class="linea-issues${claseIssues}${f.cambio.cerrados ? ' marcada' : ''}" d="${barra(g.izq, p.issues, finIssues - g.izq, p.altoIssues, 2)}"${estiloIssues}/>`;
+        }
+        issuesSvg += `<rect class="linea-issues${claseTexto}" x="${finIssues}" y="${p.issues - 3}" width="2.5" height="${p.altoIssues + 6}"${estiloTexto}/>`;
+        if (animar && brillo?.cerrados?.hasta > ahora) issuesSvg = `<g class="brilla-issues" style="${retraso(brillo.cerrados.desde)}">${issuesSvg}</g>`;
+        marcasFila += `${issuesSvg}
+          <text class="t-issues${claseTexto}" x="${finIssues + 8}" y="${p.textoIssues}"${estiloTexto}>${texto}</text>`;
+      }
+    }
+
+    let marcador = '';
+    if (f.estado !== 'pendiente') {
+      const textoMarcador = f.release ? textoDias(f.dias) : t.sinReleases;
+      const segunda = !f.release ? ''
+        : novedad ? `<text class="t-nueva" x="${ancho - 17}" y="${p.fecha}" text-anchor="end">${esc(t.nuevaRelease)}</text>`
+        : `<text class="t-sub" x="${ancho - 17}" y="${p.fecha}" text-anchor="end">${esc(fechaCorta.format(new Date(f.release.fecha)))}</text>`;
+      marcador = `${formaEstado(f.estado, ancho - 6, p.forma)}
+        <text class="t-dias${f.release ? '' : ' t-tenue'}" x="${ancho - 17}" y="${p.dias}" text-anchor="end">${esc(textoMarcador)}</text>
+        ${p.fecha && f.release ? segunda : ''}`;
+    }
+
+    const resumen = f.estado === 'pendiente'
+      ? t.filaCargando(f.nombre)
+      : f.release
+        ? t.filaRelease(f.nombre, f.release.tag, numero.format(f.adelante ?? 0), textoDias(f.dias), f.cerrados == null ? t.issuesSinContar : textoIssues(f.cerrados))
+          + (novedad ? `, ${t.nuevaRelease}` : '')
+          + (f.cambio.adelante ? `, ${t.cambioCommits(numero.format(f.cambio.adelante))}` : '')
+          + (f.cambio.cerrados ? `, ${t.cambioIssues(numero.format(f.cambio.cerrados))}` : '')
+        : t.filaSin(f.nombre, numero.format(f.commits30 ?? 0));
+    const reciente = f.cambio.adelante || f.cambio.cerrados;
+    const claseFila = `fila${novedad ? ' novedad' : reciente ? ' reciente' : ''}${novedad && animar ? ' late' : ''}`;
+    const estiloFondo = novedad && animar ? ` style="animation-delay:-${ahora % 2400}ms"` : '';
+
+    return `<g class="${claseFila}" tabindex="0" role="listitem" aria-label="${esc(resumen)}" data-i="${i}" data-nombre="${esc(f.nombre)}">
+      <rect class="fondo" x="${-6}" y="${y0}" width="${ancho + 12}" height="${g.alto}"${estiloFondo}/>
+      <rect class="foco" x="${-4}" y="${y0 + 1}" width="${ancho + 8}" height="${g.alto - 2}" rx="3"/>
+      ${reciente ? `<rect class="marca-cambio" x="${-6}" y="${y0 + 3}" width="3" height="${g.alto - 6}" rx="1.5"/>` : ''}
+      ${etiquetaNombre}${marcasFila}${marcador}
+      <line class="separador" x1="0" x2="${ancho}" y1="${y0 + g.alto - 0.5}" y2="${y0 + g.alto - 0.5}"/>
+    </g>`;
+  }).join('');
+
+  caja.innerHTML = `<svg width="${ancho}" height="${altoTotal}" viewBox="0 0 ${ancho} ${altoTotal}" role="list" aria-label="${esc(t.ariaGrafico)}">
+    <defs>
+      <pattern id="rayado" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect class="rayado-fondo" width="6" height="6"/>
+        <line class="rayado-linea" x1="0" y1="0" x2="0" y2="6"/>
+      </pattern>
+      <linearGradient id="grad-pulso">
+        <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+        <stop offset="0.5" stop-color="#fff" stop-opacity="0.55"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${eje}${filasSvg}
+  </svg><div id="tip" class="tip" hidden></div>`;
+
+  if (enfocada) caja.querySelector(`.fila[data-nombre="${CSS.escape(enfocada)}"]`)?.focus({ preventScroll: true });
+  programarRepintado();
+}
+
+function mostrarTip(fila, puntoX) {
+  const f = filasGrafico[Number(fila.dataset.i)];
+  const tip = $('#tip');
+  if (!f || !tip) return;
+  const caja = $('#grafico');
+  caja.querySelectorAll('.fila.activa').forEach(otra => otra.classList.remove('activa'));
+  fila.classList.add('activa');
+  const datos = [];
+  if (f.release) {
+    datos.push([t.tipCommits, f.adelante == null ? '—' : numero.format(f.adelante)]);
+    datos.push([t.tipIssues, f.cerrados == null ? t.tipSinContar : numero.format(f.cerrados) + (f.bugs ? ` (${t.bug(numero.format(f.bugs))})` : '')]);
+  }
+  datos.push([t.tip30, f.commits30 == null ? '—' : numero.format(f.commits30)]);
+  const cabeza = f.release
+    ? t.tipPublicada(fechaLarga.format(new Date(f.release.fecha)), textoDias(f.dias))
+    : f.estado === 'sin' ? t.tipSinReleases : t.tipSinDatos;
+  tip.innerHTML = `<p><strong>${esc(f.nombre)}</strong>${f.release ? ` · ${esc(f.release.tag)}` : ''}</p>
+    <p>${esc(cabeza)}</p>
+    <dl>${datos.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    ${f.en ? `<p class="pie">${esc(t.tipDato(cuando(f.en), haceCuanto(f.en)))}</p>` : ''}`;
+  tip.hidden = false;
+  const ancho = caja.clientWidth;
+  const marco = fila.getBBox();
+  const izquierda = Math.min(Math.max(0, (puntoX ?? ancho / 2) + 14), ancho - tip.offsetWidth);
+  const abajo = marco.y + marco.height + 4;
+  const arriba = abajo + tip.offsetHeight > caja.clientHeight ? marco.y - tip.offsetHeight - 4 : abajo;
+  tip.style.left = `${Math.max(0, izquierda)}px`;
+  tip.style.top = `${arriba}px`;
+}
+
+function ocultarTip() {
+  const tip = $('#tip');
+  if (tip) tip.hidden = true;
+  $('#grafico').querySelectorAll('.fila.activa').forEach(fila => fila.classList.remove('activa'));
+}
+
+const detalle = { nombre: null, rango: 90, historial: null, cargadoEn: 0, cargando: false };
+const sumarDias = (dia, n) => new Date(Date.parse(`${dia}T00:00:00Z`) + n * DIA).toISOString().slice(0, 10);
+const fechaDe = dia => fechaCorta.format(new Date(`${dia}T12:00:00Z`));
+const diasEntre = (desde, hasta) => Math.round((Date.parse(`${hasta.slice(0, 10)}T00:00:00Z`) - Date.parse(`${desde.slice(0, 10)}T00:00:00Z`)) / DIA);
+const sumaSerie = lista => lista.reduce((total, valor) => total + (valor ?? 0), 0);
+
+async function cargarHistorial() {
+  if (detalle.historial && Date.now() - detalle.cargadoEn < INTERVALO) return;
+  detalle.cargando = true;
+  try {
+    const res = await fetch('data/historial.json', { cache: 'no-cache' });
+    detalle.historial = res.ok ? await res.json() : null;
+  } catch {
+    detalle.historial = null;
+  }
+  detalle.cargando = false;
+  detalle.cargadoEn = Date.now();
+}
+
+async function abrirDetalle(nombre) {
+  detalle.nombre = nombre;
+  const dialogo = $('#detalle');
+  const carga = cargarHistorial();
+  renderDetalle();
+  if (!dialogo.open) {
+    dialogo.showModal();
+    dialogo.querySelector('[data-accion="cerrar"]')?.focus();
+  }
+  await carga;
+  if (dialogo.open && detalle.nombre === nombre) renderDetalle();
+}
+
+function serieDetalle(h, rango) {
+  const total = h.commits.length;
+  const inicio = rango ? Math.max(0, total - rango) : 0;
+  const dias = Array.from({ length: total - inicio }, (_, i) => sumarDias(h.desde, inicio + i));
+  const tomar = lista => lista.slice(inicio);
+  const diaria = { dias, commits: tomar(h.commits), reportados: tomar(h.reportados), cerrados: tomar(h.cerrados), abiertos: tomar(h.abiertos), semanal: false };
+  if (dias.length <= 120) return diaria;
+  const grupos = Math.ceil(dias.length / 7);
+  const agrupar = (lista, ultimo) => Array.from({ length: grupos }, (_, g) => {
+    const tramo = lista.slice(g * 7, g * 7 + 7);
+    if (ultimo) return tramo[tramo.length - 1];
+    return tramo.every(valor => valor == null) ? null : sumaSerie(tramo);
+  });
+  return {
+    dias: Array.from({ length: grupos }, (_, g) => dias[g * 7]),
+    commits: agrupar(diaria.commits),
+    reportados: agrupar(diaria.reportados),
+    cerrados: agrupar(diaria.cerrados),
+    abiertos: agrupar(diaria.abiertos, true),
+    semanal: true,
+  };
+}
+
+function indiceEnSerie(serie, fecha) {
+  const desdeInicio = diasEntre(serie.dias[0], fecha);
+  const indice = serie.semanal ? Math.floor(desdeInicio / 7) : desdeInicio;
+  return indice >= 0 && indice < serie.dias.length ? indice : -1;
+}
+
+function ciclosDeRelease(h) {
+  const desde = h.desde;
+  return h.releases.map(([tag, fecha], k) => {
+    const anterior = h.releases[k - 1];
+    const inicio = anterior ? diasEntre(desde, anterior[1]) + 1 : 0;
+    const fin = diasEntre(desde, fecha) + 1;
+    return {
+      tag,
+      fecha,
+      dias: anterior ? diasEntre(anterior[1], fecha) : null,
+      commits: sumaSerie(h.commits.slice(Math.max(0, inicio), Math.max(0, fin))),
+      cerrados: sumaSerie(h.cerrados.slice(Math.max(0, inicio), Math.max(0, fin))),
+    };
+  }).reverse();
+}
+
+function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
+  const ancho = Math.floor(caja.clientWidth);
+  const n = serie.dias.length;
+  if (!ancho || !n) return;
+  const alto = tipo === 'abiertos' ? 130 : 170;
+  const m = { izq: 40, der: 6, arriba: tipo === 'commits' ? 18 : 8, abajo: 22 };
+  const plotW = ancho - m.izq - m.der;
+  const plotH = alto - m.arriba - m.abajo;
+  const paso = plotW / n;
+  const grueso = Math.max(1, paso - (paso > 5 ? 2 : paso > 2.5 ? 1 : 0));
+  const xIni = i => m.izq + i * paso;
+  const centro = i => xIni(i) + paso / 2;
+  let ticks;
+  let y;
+  let cuerpo = '';
+
+  if (tipo === 'issues') {
+    const tope = marcas(Math.max(1, ...serie.reportados, ...serie.cerrados), 2).at(-1);
+    const cero = m.arriba + plotH / 2;
+    y = v => cero - (v / tope) * (plotH / 2);
+    ticks = [tope, 0, -tope];
+    serie.dias.forEach((_, i) => {
+      const arriba = serie.reportados[i];
+      const abajo = serie.cerrados[i];
+      if (arriba) cuerpo += `<rect class="serie-reportados" x="${xIni(i).toFixed(1)}" y="${y(arriba).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(cero - y(arriba)).toFixed(1)}"/>`;
+      if (abajo) cuerpo += `<rect class="serie-cerrados" x="${xIni(i).toFixed(1)}" y="${cero}" width="${grueso.toFixed(1)}" height="${(y(-abajo) - cero).toFixed(1)}"/>`;
+    });
+  } else if (tipo === 'commits') {
+    ticks = marcas(Math.max(1, ...serie.commits.filter(v => v != null)), 3).reverse();
+    y = v => m.arriba + plotH - (v / ticks[0]) * plotH;
+    serie.commits.forEach((v, i) => {
+      if (v) cuerpo += `<rect class="serie-commits" x="${xIni(i).toFixed(1)}" y="${y(v).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(m.arriba + plotH - y(v)).toFixed(1)}"/>`;
+    });
+  } else {
+    ticks = marcas(Math.max(1, ...serie.abiertos), 2).reverse();
+    y = v => m.arriba + plotH - (v / ticks[0]) * plotH;
+    const puntos = serie.abiertos.map((v, i) => `${centro(i).toFixed(1)},${y(v).toFixed(1)}`);
+    cuerpo = `<path class="area-abiertos" d="M${centro(0).toFixed(1)},${m.arriba + plotH}L${puntos.join('L')}L${centro(n - 1).toFixed(1)},${m.arriba + plotH}Z"/>
+      <path class="linea-abiertos" d="M${puntos.join('L')}"/>`;
+  }
+
+  const rejilla = ticks.map(v => `<line class="rejilla${v === 0 ? ' rejilla-cero' : ''}" x1="${m.izq}" x2="${ancho - m.der}" y1="${y(v).toFixed(1) - 0.5}" y2="${y(v).toFixed(1) - 0.5}"/>
+    <text class="t-eje" x="${m.izq - 6}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${numero.format(Math.abs(v))}</text>`).join('');
+
+  const cuantas = Math.max(2, Math.floor(plotW / 90));
+  const salto = Math.max(1, Math.ceil(n / cuantas));
+  let fechas = '';
+  for (let i = 0; i < n; i += salto) {
+    fechas += `<text class="t-eje" x="${centro(i).toFixed(1)}" y="${alto - 6}" text-anchor="${i === 0 ? 'start' : 'middle'}">${esc(fechaDe(serie.dias[i]))}</text>`;
+  }
+
+  const porIndice = {};
+  let marcasRelease = '';
+  if (tipo !== 'abiertos') {
+    let ultimaEtiqueta = -Infinity;
+    for (const [tag, fecha] of releases) {
+      const i = indiceEnSerie(serie, fecha);
+      if (i < 0) continue;
+      (porIndice[i] ??= []).push(tag);
+      const x = centro(i);
+      marcasRelease += `<line class="marca-release" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${m.arriba}" y2="${m.arriba + plotH}"/>`;
+      if (tipo === 'commits' && x - ultimaEtiqueta >= 48) {
+        marcasRelease += `<text class="t-release" x="${Math.min(x, ancho - 24).toFixed(1)}" y="${m.arriba - 6}" text-anchor="middle">${esc(tag)}</text>`;
+        ultimaEtiqueta = x;
+      }
+    }
+  }
+
+  caja.innerHTML = `<svg width="${ancho}" height="${alto}" viewBox="0 0 ${ancho} ${alto}" role="img" tabindex="0" aria-label="${esc(resumen)}">
+    ${rejilla}${marcasRelease}${cuerpo}${fechas}
+    <line class="cursor-serie" x1="0" x2="0" y1="${m.arriba}" y2="${m.arriba + plotH}" visibility="hidden"/>
+  </svg>`;
+
+  const svg = caja.querySelector('svg');
+  const cursor = svg.querySelector('.cursor-serie');
+  const fecha = i => (serie.semanal ? t.semanaDe(fechaDe(serie.dias[i])) : fechaDe(serie.dias[i]));
+  const texto = i => {
+    const extra = porIndice[i] ? ` · ${t.releaseLectura(porIndice[i].join(', '))}` : '';
+    if (tipo === 'commits') return serie.commits[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaCommits(fecha(i), numero.format(serie.commits[i])) + extra;
+    if (tipo === 'issues') return t.lecturaIssues(fecha(i), numero.format(serie.reportados[i]), numero.format(serie.cerrados[i])) + extra;
+    return t.lecturaAbiertos(fecha(i), numero.format(serie.abiertos[i]));
+  };
+  let actual = n - 1;
+  const leer = i => {
+    actual = i;
+    cursor.setAttribute('x1', centro(i).toFixed(1));
+    cursor.setAttribute('x2', centro(i).toFixed(1));
+    cursor.setAttribute('visibility', 'visible');
+    lectura.textContent = texto(i);
+  };
+  const soltar = () => {
+    cursor.setAttribute('visibility', 'hidden');
+    lectura.textContent = resumen;
+  };
+  lectura.textContent = resumen;
+  svg.addEventListener('pointermove', evento => {
+    const i = Math.floor((evento.clientX - svg.getBoundingClientRect().left - m.izq) / paso);
+    if (i >= 0 && i < n) leer(i);
+  });
+  svg.addEventListener('pointerleave', soltar);
+  svg.addEventListener('blur', soltar);
+  svg.addEventListener('focus', () => leer(actual));
+  svg.addEventListener('keydown', evento => {
+    const mover = { ArrowLeft: -1, ArrowRight: 1, Home: -n, End: n }[evento.key];
+    if (mover === undefined) return;
+    evento.preventDefault();
+    leer(Math.min(n - 1, Math.max(0, actual + mover)));
+  });
+}
+
+function dibujarDetalle() {
+  const h = detalle.historial?.repos?.[detalle.nombre];
+  if (!h) return;
+  const serie = serieDetalle(h, detalle.rango);
+  const dias = serie.semanal ? serie.dias.length * 7 : serie.dias.length;
+  const contados = serie.commits.filter(v => v != null);
+  const graficos = [
+    ['commits', t.resumenCommits(numero.format(sumaSerie(contados)), numero.format(dias))],
+    ['issues', t.resumenIssues(numero.format(sumaSerie(serie.reportados)), numero.format(sumaSerie(serie.cerrados)))],
+    ['abiertos', t.resumenAbiertos(numero.format(serie.abiertos.at(-1) ?? 0))],
+  ];
+  for (const [tipo, resumen] of graficos) {
+    const caja = $(`#lienzo-${tipo}`);
+    if (caja) dibujarSerie(caja, $(`#lectura-${tipo}`), { serie, tipo, releases: h.releases, resumen });
+  }
+}
+
+function renderDetalle() {
+  const dialogo = $('#detalle');
+  const lista = filasGrafico.length ? filasGrafico : filas();
+  const f = lista.find(fila => fila.nombre === detalle.nombre);
+  if (!f) return;
+  const enfocado = document.activeElement?.dataset?.foco;
+  const h = detalle.historial?.repos?.[f.nombre] ?? null;
+  const posicion = lista.indexOf(f);
+  const vecino = salto => lista[(posicion + salto + lista.length) % lista.length].nombre;
+  const semanal = h ? serieDetalle(h, detalle.rango).semanal : false;
+  const sub = [
+    f.release ? t.tipPublicada(fechaLarga.format(new Date(f.release.fecha)), textoDias(f.dias)) : t.sinReleases,
+    f.estrellas != null ? `★ ${numero.format(f.estrellas)}` : '',
+  ].filter(Boolean).join(' · ');
+  const progreso = h ? Math.round((h.progreso?.issues ?? 0) * 100) : 0;
+  const cifras = [
+    [t.cifraCommits, f.adelante == null ? '—' : numero.format(f.adelante), f.release ? f.release.tag : t.sinReleases],
+    [t.cifraIssues, f.cerrados == null ? '—' : numero.format(f.cerrados), f.bugs ? t.cifraIssuesSub(numero.format(f.bugs)) : ''],
+    [t.kpiHistorial, h ? numero.format(sumaSerie(h.commits)) : '—', h ? t.desde(fechaDe(h.desde)) : ''],
+    [t.kpiAbiertos, h?.completo?.issues ? numero.format(h.abiertos.at(-1) ?? 0) : '—', h && !h.completo?.issues ? `${progreso} %` : ''],
+  ];
+  const notas = [];
+  if (h && !h.completo?.issues) notas.push(t.issuesIncompletos(progreso));
+  const sinContar = h ? h.commits.filter(v => v == null).length : 0;
+  if (sinContar) notas.push(t.diasSinContar(sinContar));
+  if (detalle.historial?.generado) notas.push(t.historialDe(cuando(Date.parse(detalle.historial.generado))));
+
+  const seccion = (tipo, titulo, leyenda = '') => `
+    <section class="grafico-detalle">
+      <div class="cabeza-serie"><h3>${esc(titulo)}</h3>${leyenda}</div>
+      <p class="lectura" id="lectura-${tipo}" aria-live="polite"></p>
+      <div class="lienzo" id="lienzo-${tipo}"></div>
+    </section>`;
+  const leyendaIssues = `<ul class="leyenda-serie">
+    <li><svg width="10" height="10" aria-hidden="true"><rect class="serie-reportados" width="10" height="10" rx="1.5"/></svg>${esc(t.reportados)} ↑</li>
+    <li><svg width="10" height="10" aria-hidden="true"><rect class="serie-cerrados" width="10" height="10" rx="1.5"/></svg>${esc(t.cerradosSerie)} ↓</li>
+  </ul>`;
+  const filasReleases = h ? [
+    { tag: t.enCurso, fecha: null, dias: f.dias, commits: f.adelante, cerrados: f.cerrados },
+    ...ciclosDeRelease(h),
+  ] : [];
+
+  dialogo.innerHTML = `<div class="detalle-cuerpo">
+    <header class="detalle-cabeza">
+      <div>
+        <h2 id="detalle-titulo">${esc(f.nombre)}</h2>
+        <p class="detalle-sub">${esc(sub)} · <a href="${esc(f.url)}">${esc(t.externo(f.nombre))} ↗</a></p>
+      </div>
+      <div class="detalle-nav">
+        <button type="button" data-accion="anterior" data-foco="anterior" aria-label="${esc(t.anterior)}" title="${esc(t.anterior)}">←</button>
+        <button type="button" data-accion="siguiente" data-foco="siguiente" aria-label="${esc(t.siguiente)}" title="${esc(t.siguiente)}">→</button>
+        <button type="button" data-accion="cerrar" data-foco="cerrar">${esc(t.cerrar)}</button>
+      </div>
+    </header>
+    <section class="resumen" aria-label="${esc(t.totales)}">${cifras.map(([titulo, valor, pie]) => `
+      <div class="cifra">
+        <p class="cifra-tit">${esc(titulo)}</p>
+        <p class="cifra-num">${esc(valor)}</p>
+        <p class="cifra-sub">${esc(pie)}</p>
+      </div>`).join('')}
+    </section>
+    ${h ? `
+    <div class="controles-detalle">
+      <div class="rango" role="group" aria-label="${esc(t.rangoTitulo)}">${[30, 90, 0].map(r => `<button type="button" data-rango="${r}" data-foco="rango-${r}" aria-pressed="${detalle.rango === r}">${esc(t.rangos[r])}</button>`).join('')}</div>
+    </div>
+    ${seccion('commits', t.tituloCommits(semanal))}
+    ${seccion('issues', t.tituloIssues(semanal), leyendaIssues)}
+    ${seccion('abiertos', t.tituloAbiertos)}
+    <section class="grafico-detalle">
+      <div class="cabeza-serie"><h3>${esc(t.tablaReleases)}</h3></div>
+      <div class="tabla-marco">
+        <table class="tabla-releases">
+          <thead><tr>${t.columnasReleases.map((titulo, i) => `<th scope="col" class="${i > 1 ? 'num' : ''}">${esc(titulo)}</th>`).join('')}</tr></thead>
+          <tbody>${filasReleases.map(r => `<tr${r.fecha ? '' : ' class="reciente"'}>
+            <td class="ver">${esc(r.tag)}</td>
+            <td>${r.fecha ? esc(fechaCorta.format(new Date(r.fecha))) : '—'}</td>
+            <td class="num">${r.dias == null ? '—' : numero.format(r.dias)}</td>
+            <td class="num">${r.commits == null ? '—' : numero.format(r.commits)}</td>
+            <td class="num">${r.cerrados == null ? '—' : numero.format(r.cerrados)}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <p class="nota-detalle">${esc(t.notaCiclos)}</p>
+    </section>` : `<p class="nota-detalle" style="margin-top:20px">${esc(detalle.cargando ? t.cargandoHistorial : t.sinHistorial)}</p>`}
+    ${notas.length ? `<p class="nota-detalle" style="margin-top:16px">${esc(notas.join(' '))}</p>` : ''}
+  </div>`;
+
+  dialogo.querySelector('[data-accion="cerrar"]').addEventListener('click', () => dialogo.close());
+  dialogo.querySelector('[data-accion="anterior"]').addEventListener('click', () => abrirDetalle(vecino(-1)));
+  dialogo.querySelector('[data-accion="siguiente"]').addEventListener('click', () => abrirDetalle(vecino(1)));
+  dialogo.querySelectorAll('[data-rango]').forEach(boton => boton.addEventListener('click', () => {
+    detalle.rango = Number(boton.dataset.rango);
+    renderDetalle();
+  }));
+  if (enfocado) dialogo.querySelector(`[data-foco="${enfocado}"]`)?.focus();
+  dibujarDetalle();
+}
+
+const COLUMNAS = [
+  { id: 'nombre', clase: 'app' },
+  { id: 'version', clase: 'ver' },
+  { id: 'fecha', opcional: true },
+  { id: 'dias', num: true },
+  { id: 'adelante', num: true },
+  { id: 'cerrados', num: true },
+  { id: 'bugs', num: true, opcional: true },
+  { id: 'commits30', num: true },
+  { id: 'estrellas', num: true, opcional: true },
+  { id: 'forks', num: true, opcional: true },
+];
+
+function valorColumna(f, col) {
+  if (col === 'version') return f.release?.tag ?? null;
+  if (col === 'fecha') return f.release ? Date.parse(f.release.fecha) : null;
+  return f[col] ?? null;
+}
+
+function celda(f, col) {
+  const pendiente = f.estado === 'pendiente';
+  const cifra = v => (v == null ? `<span class="tenue">${pendiente ? '…' : '—'}</span>` : numero.format(v));
+  switch (col.id) {
+    case 'nombre':
+      return `<button type="button" class="abrir-app" data-app="${esc(f.nombre)}" aria-label="${esc(t.verDetalle(f.nombre))}">${esc(f.nombre)}</button><a class="externo" href="${esc(f.url)}" aria-label="${esc(t.externo(f.nombre))}">↗</a>`;
+    case 'version':
+      if (f.release) return `<a href="${esc(f.release.url)}">${esc(f.release.tag)}</a>`;
+      return `<span class="tenue">${f.estado === 'sin' ? esc(t.sinReleases) : '…'}</span>`;
+    case 'fecha':
+      return f.release ? esc(fechaCorta.format(new Date(f.release.fecha))) : '<span class="tenue">—</span>';
+    case 'dias':
+      if (!f.release) return cifra(null);
+      return `<span class="estado"><svg width="11" height="10" aria-hidden="true">${formaEstado(f.estado, 5.5, 5)}</svg>${f.dias === 0 ? esc(t.hoy) : `${numero.format(f.dias)} d`}<span class="solo-lector">, ${esc(f.estado === 'atrasado' ? t.atrasado : t.alDia)}</span></span>`;
+    case 'adelante':
+      return cifra(f.adelante) + (f.cambio.adelante ? `<span class="delta">+${numero.format(f.cambio.adelante)}</span>` : '');
+    case 'cerrados':
+    case 'bugs':
+      if (f.estado === 'sin') return '<span class="tenue">—</span>';
+      if (f.release && f.cerrados === undefined) return '<span class="tenue">…</span>';
+      return cifra(f[col.id]) + (col.id === 'cerrados' && f.cambio.cerrados ? `<span class="delta">+${numero.format(f.cambio.cerrados)}</span>` : '');
+    default:
+      return cifra(f[col.id]);
+  }
+}
+
+function encabezadosTabla() {
+  $('#tabla thead tr').innerHTML = COLUMNAS.map(col => `
+    <th scope="col" class="${col.num ? 'num' : col.clase ?? ''}${col.opcional ? ' opc' : ''}" data-col="${col.id}">
+      <button type="button" data-col="${col.id}">${esc(t.columnas[col.id])}<span class="flecha" aria-hidden="true"></span></button>
+    </th>`).join('');
+}
+
+function montarTabla() {
+  $('#tabla thead').addEventListener('click', evento => {
+    const boton = evento.target.closest('button[data-col]');
+    if (!boton) return;
+    const col = COLUMNAS.find(c => c.id === boton.dataset.col);
+    estado.orden = estado.orden.col === col.id
+      ? { col: col.id, dir: -estado.orden.dir }
+      : { col: col.id, dir: col.num ? -1 : 1 };
+    renderTabla();
+  });
+}
+
+function renderTabla() {
+  const { col, dir } = estado.orden;
+  const lista = filas().sort((a, b) => {
+    const va = valorColumna(a, col);
+    const vb = valorColumna(b, col);
+    if (va == null && vb == null) return a.nombre.localeCompare(b.nombre);
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    const comparacion = typeof va === 'string' ? va.localeCompare(vb, 'es', { numeric: true }) : va - vb;
+    return comparacion * dir || a.nombre.localeCompare(b.nombre);
+  });
+  document.querySelectorAll('#tabla th').forEach(th => {
+    const activa = th.dataset.col === col;
+    if (activa) th.setAttribute('aria-sort', dir > 0 ? 'ascending' : 'descending');
+    else th.removeAttribute('aria-sort');
+    th.querySelector('.flecha').textContent = activa ? (dir > 0 ? '↑' : '↓') : '';
+  });
+  $('#tabla tbody').innerHTML = lista.map(f => `<tr${f.cambio.adelante || f.cambio.cerrados ? ' class="reciente"' : ''}>${COLUMNAS.map(c => `<td class="${c.num ? 'num' : c.clase ?? ''}${c.opcional ? ' opc' : ''}">${celda(f, c)}</td>`).join('')}</tr>`).join('');
+}
+
+function iniciar() {
+  usarIdioma(detectarIdioma());
+  aplicarPrefs();
+  encabezadosTabla();
+  montarTabla();
+
+  $('#idioma').addEventListener('change', evento => {
+    try {
+      localStorage.setItem(CLAVE_IDIOMA, evento.target.value);
+    } catch {}
+    usarIdioma(evento.target.value);
+    aplicarPrefs();
+    encabezadosTabla();
+    render();
+  });
+
+  for (const clave of ['sonido', 'efectos']) {
+    $(`#${clave}`).addEventListener('click', () => {
+      prefs[clave] = !prefs[clave];
+      guardarPrefs();
+      aplicarPrefs();
+      if (clave === 'sonido' && prefs.sonido) prepararAudio()?.then(() => sonar('activar'));
+      render();
+    });
+  }
+  for (const tipo of ['pointerdown', 'keydown']) document.addEventListener(tipo, () => prepararAudio());
+
+  $('#resumen').addEventListener('click', evento => {
+    const boton = evento.target.closest('button[data-ir]');
+    if (boton) irAFila(boton.dataset.ir);
+  });
+
+  const grafico = $('#grafico');
+  const filaVigente = fila => (verNovedad(fila.dataset.nombre)
+    ? grafico.querySelector(`.fila[data-nombre="${CSS.escape(fila.dataset.nombre)}"]`)
+    : fila);
+  grafico.addEventListener('pointermove', evento => {
+    const fila = evento.target.closest('.fila');
+    if (!fila) return ocultarTip();
+    const caja = grafico.getBoundingClientRect();
+    mostrarTip(filaVigente(fila), evento.clientX - caja.left);
+  });
+  grafico.addEventListener('pointerleave', ocultarTip);
+  grafico.addEventListener('focusin', evento => {
+    const fila = evento.target.closest('.fila');
+    if (fila) mostrarTip(filaVigente(fila));
+  });
+  grafico.addEventListener('focusout', ocultarTip);
+  grafico.addEventListener('keydown', evento => {
+    if (evento.key === 'Escape') ocultarTip();
+    const fila = evento.target.closest('.fila');
+    if (fila && (evento.key === 'Enter' || evento.key === ' ')) {
+      evento.preventDefault();
+      abrirDetalle(fila.dataset.nombre);
+    }
+  });
+  grafico.addEventListener('click', evento => {
+    const fila = evento.target.closest('.fila');
+    if (fila) abrirDetalle(fila.dataset.nombre);
+  });
+  $('#tabla tbody').addEventListener('click', evento => {
+    const boton = evento.target.closest('.abrir-app');
+    if (boton) abrirDetalle(boton.dataset.app);
+  });
+  const dialogo = $('#detalle');
+  dialogo.addEventListener('click', evento => {
+    if (evento.target === dialogo) dialogo.close();
+  });
+  window.addEventListener('resize', () => {
+    if (dialogo.open) dibujarDetalle();
+  });
+
+  let pendiente = 0;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(pendiente);
+    pendiente = requestAnimationFrame(renderGrafico);
+  }).observe(grafico);
+
+  $('#actualizar').addEventListener('click', () => actualizar(true));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - estado.intento >= INTERVALO) actualizar();
+  });
+  window.addEventListener('online', () => actualizar());
+  setInterval(() => actualizar(), INTERVALO);
+  setInterval(() => {
+    renderCabecera();
+    renderAvisos();
+  }, MIN);
+
+  window.addEventListener('pagehide', () => {
+    if (estado.ocupado) soltarTurno();
+  });
+  window.addEventListener('storage', evento => {
+    if (evento.key !== CLAVE || estado.ocupado) return;
+    cache = leer();
+    render();
+  });
+
+  efectos.crecerDesde = Date.now();
+  render();
+  programarSumas(sumasVigentes());
+  actualizar();
+}
+
+iniciar();
+</script>
+</body>
+</html>
