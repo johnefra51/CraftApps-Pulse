@@ -16,7 +16,7 @@ ORG = 'storytold'
 API = 'https://api.github.com'
 TOKEN = os.environ.get('GITHUB_TOKEN', '')
 RESERVA = 250 if TOKEN else 5
-TOPE_HISTORIA = int(os.environ.get('TOPE_HISTORIA', '150'))
+TOPE_HISTORIA = int(os.environ.get('TOPE_HISTORIA', '450'))
 HORA = 3600
 AHORA = datetime.now(timezone.utc)
 
@@ -212,8 +212,6 @@ def tareas_de_historia(nombre, estado, creado, etiquetas_bug):
         if dia >= creado:
             urgentes.append(lambda dia=dia: contar(dia))
 
-    if not estado.get('issuesCompleto'):
-        pendientes.append(issues_pagina)
     dia = creado
     while dia < hoy - timedelta(days=1):
         guardado = estado['commits'].get(dia.isoformat())
@@ -222,6 +220,8 @@ def tareas_de_historia(nombre, estado, creado, etiquetas_bug):
         if not guardado or guardado[1] < fin_del_dia + HORA or (reciente and ahora - guardado[1] > 6 * HORA):
             pendientes.append(lambda dia=dia: contar(dia))
         dia += timedelta(days=1)
+    if not estado.get('issuesCompleto'):
+        pendientes.append(issues_pagina)
     return urgentes, pendientes
 
 

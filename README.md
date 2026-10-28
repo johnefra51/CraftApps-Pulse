@@ -22,6 +22,14 @@ Al tocar una app en el gráfico o su nombre en la tabla se abre un panel con:
 
 Los commits por día se cuentan igual que en el tablero (commits de la rama por defecto según su fecha), y los issues salen de recorrer todos los issues de cada repositorio una vez y después solo los que cambian. La primera vez, el historial completo tarda alrededor de una hora en cargarse; mientras tanto el panel muestra el avance.
 
+## Cada cuánto se actualiza
+
+La Action está programada cada 10 minutos (minutos 4, 14, 24… de cada hora), pero GitHub atrasa las ejecuciones programadas cuando tiene mucha carga, a veces bastante, y en repositorios nuevos puede tardar en empezar a correrlas. La página revisa el archivo de datos justo cuando debería haber uno nuevo y, si GitHub se atrasa, vuelve a mirar cada 3 minutos; esa revisión es un archivo estático, no gasta API. Al pie, una línea dice en cuánto llega la próxima actualización; se recalcula en cada refresco y no corre en vivo.
+
+## Desde tu última visita
+
+Cada navegador recuerda lo último que vio. Si vuelves después de un rato, la página trae los datos actuales de una vez, repite las animaciones de lo que cambió (sumas, releases nuevas) y muestra arriba un resumen: commits nuevos, issues cerrados y releases publicadas desde tu última visita. Se cierra con **Entendido**.
+
 ## Archivos
 
 - `index.html`: el tablero, en un solo archivo y sin build.

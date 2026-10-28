@@ -306,6 +306,12 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
 
 .pie-pagina { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--regla); font-size: 12.5px; color: var(--tenue); max-width: 72ch; }
 .pie-pagina p { margin: 0 0 6px; }
+.pie-pagina .proxima { color: var(--tinta-2); }
+.visita { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 16px; padding: 12px 14px; font-size: 14px; background: var(--fila-reciente); border-left: 3px solid var(--brillo); }
+.visita[hidden] { display: none; }
+.visita p { margin: 0; }
+.visita-titulo { font-weight: 600; }
+.visita button { padding: 6px 12px; font-size: 13px; }
 .pie-pagina .nota-cupo { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; color: var(--tinta-2); }
 .nota-cupo[hidden] { display: none; }
 .nota-cupo::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--atraso); transform: translateY(-1px); }
@@ -366,9 +372,12 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
 .serie-cerrados { fill: var(--issues); }
 .linea-abiertos { fill: none; stroke: var(--tinta); stroke-width: 1.75; stroke-linejoin: round; }
 .area-abiertos { fill: var(--tinta); fill-opacity: 0.07; }
-.marca-release { stroke: var(--brillo); stroke-width: 1; stroke-dasharray: 3 3; }
+.marca-release { stroke: var(--brillo); stroke-width: 1; stroke-dasharray: 2 4; stroke-opacity: 0.55; }
+.rombo-release { fill: var(--brillo); }
+.hueco { opacity: 0.5; }
+.raya-hueco { stroke: var(--regla-2); stroke-width: 1.5; }
 .t-release { font: 500 10.5px var(--mono); fill: var(--brillo-texto); }
-.cursor-serie { stroke: var(--tinta-2); stroke-width: 1; }
+.cursor-serie { fill: var(--tinta); fill-opacity: 0.08; pointer-events: none; }
 .leyenda-serie { display: inline-flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--tinta-2); }
 .leyenda-serie li { display: inline-flex; align-items: center; gap: 5px; }
 .detalle .tabla-marco { margin-top: 8px; }
@@ -433,6 +442,7 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
   </header>
 
   <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+  <section id="visita" class="visita" aria-live="polite" hidden></section>
 
   <section id="resumen" class="resumen" data-t-aria="totales"></section>
 
@@ -464,6 +474,7 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
   </section>
 
   <footer class="pie-pagina">
+    <p id="proxima" class="proxima"></p>
     <p id="nota-cupo" class="nota-cupo" role="status" hidden></p>
     <p data-t="pie1"></p>
     <p data-t="pie2"></p>
@@ -508,7 +519,7 @@ const TEXTOS = {
     cerrar: 'Cerrar',
     anterior: 'App anterior',
     siguiente: 'App siguiente',
-    rangos: { 30: '30 días', 90: '90 días', 0: 'Todo' },
+    rangos: { 7: '7 días', 14: '14 días', 30: '30 días', 90: '90 días', 0: 'Todo' },
     rangoTitulo: 'Período',
     tituloCommits: semana => (semana ? 'Commits por semana' : 'Commits por día'),
     tituloIssues: semana => (semana ? 'Issues reportados y cerrados por semana' : 'Issues reportados y cerrados por día'),
@@ -536,6 +547,14 @@ const TEXTOS = {
     diasSinContar: n => (n === 1 ? '1 día todavía sin contar.' : `${n} días todavía sin contar.`),
     historialDe: cuando => `Historial generado a las ${cuando}`,
     modoVivo: 'en vivo',
+    proximaEn: n => `Próxima actualización en ~${n} min`,
+    proximaPronto: 'Próxima actualización en cualquier momento (GitHub a veces se atrasa)',
+    proximaConsulta: n => `Próxima consulta a la API en ${n} min`,
+    visitaTitulo: cuando => `Desde tu última visita (${cuando})`,
+    visitaCommits: (n, apps) => `${n} commits nuevos en ${apps === 1 ? '1 app' : `${apps} apps`}`,
+    visitaIssues: n => `${n} issues cerrados`,
+    visitaReleases: (n, lista) => `${n === 1 ? '1 release nueva' : `${n} releases nuevas`}: ${lista}`,
+    entendido: 'Entendido',
     verVivo: 'Ver la versión en vivo (consulta la API desde tu navegador)',
     verAuto: 'Ver la versión automática (sin gastar API)',
     releaseLectura: tag => `release ${tag}`,
@@ -618,7 +637,7 @@ const TEXTOS = {
     cerrar: 'Close',
     anterior: 'Previous app',
     siguiente: 'Next app',
-    rangos: { 30: '30 days', 90: '90 days', 0: 'All' },
+    rangos: { 7: '7 days', 14: '14 days', 30: '30 days', 90: '90 days', 0: 'All' },
     rangoTitulo: 'Period',
     tituloCommits: semana => (semana ? 'Commits per week' : 'Commits per day'),
     tituloIssues: semana => (semana ? 'Issues reported and closed per week' : 'Issues reported and closed per day'),
@@ -646,6 +665,14 @@ const TEXTOS = {
     diasSinContar: n => (n === 1 ? '1 day not counted yet.' : `${n} days not counted yet.`),
     historialDe: cuando => `History generated at ${cuando}`,
     modoVivo: 'live',
+    proximaEn: n => `Next update in ~${n} min`,
+    proximaPronto: 'Next update any moment now (GitHub sometimes runs late)',
+    proximaConsulta: n => `Next API check in ${n} min`,
+    visitaTitulo: cuando => `Since your last visit (${cuando})`,
+    visitaCommits: (n, apps) => `${n} new commits across ${apps === 1 ? '1 app' : `${apps} apps`}`,
+    visitaIssues: n => `${n} closed issues`,
+    visitaReleases: (n, lista) => `${n === 1 ? '1 new release' : `${n} new releases`}: ${lista}`,
+    entendido: 'Got it',
     verVivo: 'See the live version (queries the API from your browser)',
     verAuto: 'See the automatic version (no API use)',
     releaseLectura: tag => `release ${tag}`,
@@ -728,7 +755,7 @@ const TEXTOS = {
     cerrar: 'Fechar',
     anterior: 'App anterior',
     siguiente: 'Próximo app',
-    rangos: { 30: '30 dias', 90: '90 dias', 0: 'Tudo' },
+    rangos: { 7: '7 dias', 14: '14 dias', 30: '30 dias', 90: '90 dias', 0: 'Tudo' },
     rangoTitulo: 'Período',
     tituloCommits: semana => (semana ? 'Commits por semana' : 'Commits por dia'),
     tituloIssues: semana => (semana ? 'Issues reportadas e fechadas por semana' : 'Issues reportadas e fechadas por dia'),
@@ -756,6 +783,14 @@ const TEXTOS = {
     diasSinContar: n => (n === 1 ? '1 dia ainda sem contar.' : `${n} dias ainda sem contar.`),
     historialDe: cuando => `Histórico gerado às ${cuando}`,
     modoVivo: 'ao vivo',
+    proximaEn: n => `Próxima atualização em ~${n} min`,
+    proximaPronto: 'Próxima atualização a qualquer momento (o GitHub às vezes atrasa)',
+    proximaConsulta: n => `Próxima consulta à API em ${n} min`,
+    visitaTitulo: cuando => `Desde sua última visita (${cuando})`,
+    visitaCommits: (n, apps) => `${n} commits novos em ${apps === 1 ? '1 app' : `${apps} apps`}`,
+    visitaIssues: n => `${n} issues fechadas`,
+    visitaReleases: (n, lista) => `${n === 1 ? '1 release nova' : `${n} releases novas`}: ${lista}`,
+    entendido: 'Entendi',
     verVivo: 'Ver a versão ao vivo (consulta a API pelo seu navegador)',
     verAuto: 'Ver a versão automática (sem gastar API)',
     releaseLectura: tag => `release ${tag}`,
@@ -879,6 +914,8 @@ function usarIdioma(codigo) {
   const otra = $('#otra-version');
   otra.textContent = EN_VIVO ? t.verAuto : t.verVivo;
   otra.href = EN_VIVO ? './' : '?en-vivo';
+  renderProxima();
+  if (cache) renderVisita();
   if ($('#detalle')?.open) renderDetalle();
 }
 
@@ -1172,6 +1209,7 @@ async function cargarArchivo() {
   }
   cache.org = { en: generado, repos: org };
   cache.fuente = 'archivo';
+  cache.generado = generado;
   cache.sinCupoHasta = null;
   return { previo, issuesAntes, lote };
 }
@@ -1426,6 +1464,84 @@ async function enParalelo(items, limite, tarea) {
 }
 
 let reintentoCupo = null;
+let siguienteRevision = 0;
+let temporizadorRevision = 0;
+const VISITA_MINIMA = 20 * MIN;
+
+function programarRevision() {
+  const ahora = Date.now();
+  let espera = INTERVALO;
+  estado.proxima = { tipo: 'api', minutos: Math.round(INTERVALO / MIN) };
+  if (cache.fuente === 'archivo' && cache.generado) {
+    const esperada = cache.generado + INTERVALO + 90 * 1000;
+    if (esperada > ahora) {
+      espera = Math.min(Math.max(esperada - ahora, 2 * MIN), 15 * MIN);
+      estado.proxima = { tipo: 'archivo', minutos: Math.max(1, Math.ceil((esperada - ahora) / MIN)) };
+    } else {
+      espera = 3 * MIN;
+      estado.proxima = { tipo: 'pronto' };
+    }
+  }
+  siguienteRevision = ahora + espera;
+  clearTimeout(temporizadorRevision);
+  temporizadorRevision = setTimeout(() => actualizar(), espera);
+  renderProxima();
+}
+
+function renderProxima() {
+  const proxima = estado.proxima;
+  if (!proxima) return;
+  $('#proxima').textContent = proxima.tipo === 'pronto' ? t.proximaPronto
+    : proxima.tipo === 'archivo' ? t.proximaEn(proxima.minutos)
+    : t.proximaConsulta(proxima.minutos);
+}
+
+function marcarVista() {
+  if (document.hidden || !ultimaActualizacion()) return;
+  cache.vista = Date.now();
+  guardar();
+}
+
+async function prepararResumenVisita(previo, issuesAntes, desde) {
+  await cargarHistorial();
+  const historias = detalle.historial?.repos ?? {};
+  const diaVisita = new Date(desde).toISOString().slice(0, 10);
+  let commits = 0;
+  let cerrados = 0;
+  const apps = new Set();
+  const releases = [];
+  for (const nombre of REPOS) {
+    const antes = previo[nombre];
+    const ahora = cache.repos[nombre];
+    if (!antes || !ahora?.release) continue;
+    const historia = historias[nombre];
+    const despues = lista => (historia ? sumaSerie(lista.slice(Math.max(0, diasEntre(historia.desde, diaVisita) + 1))) : 0);
+    const mismaRelease = antes.tag === ahora.release.tag;
+    const nuevosCommits = mismaRelease ? Math.max(0, (ahora.adelante ?? 0) - (antes.adelante ?? 0)) : despues(historia?.commits ?? []);
+    const nuevosCerrados = mismaRelease ? Math.max(0, (ahora.cerrados ?? 0) - (issuesAntes[nombre]?.cerrados ?? 0)) : despues(historia?.cerrados ?? []);
+    if (nuevosCommits || nuevosCerrados) apps.add(nombre);
+    commits += nuevosCommits;
+    cerrados += nuevosCerrados;
+    const nuevas = (historia?.releases ?? []).filter(([, fecha]) => Date.parse(fecha) > desde).map(([tag]) => `${nombre} ${tag}`);
+    if (!mismaRelease && !nuevas.length) nuevas.push(`${nombre} ${ahora.release.tag}`);
+    releases.push(...nuevas);
+  }
+  if (commits || cerrados || releases.length) cache.resumenVisita = { desde, commits, cerrados, apps: apps.size, releases };
+}
+
+function renderVisita() {
+  const caja = $('#visita');
+  const resumen = cache.resumenVisita;
+  caja.hidden = !resumen;
+  if (!resumen) return;
+  const partes = [];
+  if (resumen.commits) partes.push(t.visitaCommits(numero.format(resumen.commits), resumen.apps));
+  if (resumen.cerrados) partes.push(t.visitaIssues(numero.format(resumen.cerrados)));
+  if (resumen.releases.length) partes.push(t.visitaReleases(resumen.releases.length, resumen.releases.join(', ')));
+  const html = `<div><p class="visita-titulo">${esc(t.visitaTitulo(cuando(resumen.desde)))}</p><p>${esc(partes.join(' · '))}</p></div>
+    <button type="button">${esc(t.entendido)}</button>`;
+  if (caja.innerHTML !== html) caja.innerHTML = html;
+}
 
 function avisarSinCupo(reset) {
   cache.sinCupoHasta = reset;
@@ -1437,8 +1553,10 @@ function avisarSinCupo(reset) {
 async function actualizar(manual = false) {
   if (estado.ocupado || (!manual && document.hidden)) return;
   cache = leer();
+  const vistaAnterior = cache.vista;
   if (!tomarTurno()) {
     render();
+    programarRevision();
     return;
   }
   estado.ocupado = true;
@@ -1451,6 +1569,9 @@ async function actualizar(manual = false) {
     if (archivo) {
       celebrarRefresco(archivo.previo, archivo.lote, manual);
       celebrarIssues(archivo.issuesAntes, archivo.lote);
+      if (vistaAnterior && Date.now() - vistaAnterior > VISITA_MINIMA && archivo.lote.length) {
+        await prepararResumenVisita(archivo.previo, archivo.issuesAntes, vistaAnterior);
+      }
       return;
     }
     cache.fuente = 'api';
@@ -1519,6 +1640,8 @@ async function actualizar(manual = false) {
     guardar();
     render();
     if ($('#detalle').open) renderDetalle();
+    marcarVista();
+    programarRevision();
   }
 }
 
@@ -1585,6 +1708,7 @@ function formaEstado(tipo, cx, cy) {
 }
 
 function render() {
+  renderVisita();
   renderCabecera();
   renderAvisos();
   renderResumen();
@@ -1897,7 +2021,7 @@ function ocultarTip() {
   $('#grafico').querySelectorAll('.fila.activa').forEach(fila => fila.classList.remove('activa'));
 }
 
-const detalle = { nombre: null, rango: 90, historial: null, cargadoEn: 0, cargando: false };
+const detalle = { nombre: null, rango: 30, historial: null, cargadoEn: 0, cargando: false };
 const sumarDias = (dia, n) => new Date(Date.parse(`${dia}T00:00:00Z`) + n * DIA).toISOString().slice(0, 10);
 const fechaDe = dia => fechaCorta.format(new Date(`${dia}T12:00:00Z`));
 const diasEntre = (desde, hasta) => Math.round((Date.parse(`${hasta.slice(0, 10)}T00:00:00Z`) - Date.parse(`${desde.slice(0, 10)}T00:00:00Z`)) / DIA);
@@ -1978,17 +2102,20 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
   const ancho = Math.floor(caja.clientWidth);
   const n = serie.dias.length;
   if (!ancho || !n) return;
-  const alto = tipo === 'abiertos' ? 130 : 170;
-  const m = { izq: 40, der: 6, arriba: tipo === 'commits' ? 18 : 8, abajo: 22 };
+  const alto = { commits: 240, issues: 200, abiertos: 140 }[tipo];
+  const carril = tipo === 'commits' ? 34 : 0;
+  const m = { izq: 42, der: 8, arriba: carril + 8, abajo: 24 };
   const plotW = ancho - m.izq - m.der;
   const plotH = alto - m.arriba - m.abajo;
   const paso = plotW / n;
-  const grueso = Math.max(1, paso - (paso > 5 ? 2 : paso > 2.5 ? 1 : 0));
-  const xIni = i => m.izq + i * paso;
-  const centro = i => xIni(i) + paso / 2;
+  const grueso = paso >= 6 ? paso * 0.68 : Math.max(1, paso - 1);
+  const xIni = i => m.izq + i * paso + (paso - grueso) / 2;
+  const centro = i => m.izq + i * paso + paso / 2;
+  const base = m.arriba + plotH;
   let ticks;
   let y;
   let cuerpo = '';
+  const huecos = [];
 
   if (tipo === 'issues') {
     const tope = marcas(Math.max(1, ...serie.reportados, ...serie.cerrados), 2).at(-1);
@@ -1998,27 +2125,29 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
     serie.dias.forEach((_, i) => {
       const arriba = serie.reportados[i];
       const abajo = serie.cerrados[i];
-      if (arriba) cuerpo += `<rect class="serie-reportados" x="${xIni(i).toFixed(1)}" y="${y(arriba).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(cero - y(arriba)).toFixed(1)}"/>`;
-      if (abajo) cuerpo += `<rect class="serie-cerrados" x="${xIni(i).toFixed(1)}" y="${cero}" width="${grueso.toFixed(1)}" height="${(y(-abajo) - cero).toFixed(1)}"/>`;
+      if (arriba) cuerpo += `<rect class="serie-reportados" x="${xIni(i).toFixed(1)}" y="${y(arriba).toFixed(1)}" width="${grueso.toFixed(1)}" height="${Math.max(0, cero - y(arriba) - 1).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
+      if (abajo) cuerpo += `<rect class="serie-cerrados" x="${xIni(i).toFixed(1)}" y="${cero + 1}" width="${grueso.toFixed(1)}" height="${Math.max(0, y(-abajo) - cero - 1).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
     });
   } else if (tipo === 'commits') {
     ticks = marcas(Math.max(1, ...serie.commits.filter(v => v != null)), 3).reverse();
-    y = v => m.arriba + plotH - (v / ticks[0]) * plotH;
+    y = v => base - (v / ticks[0]) * plotH;
     serie.commits.forEach((v, i) => {
-      if (v) cuerpo += `<rect class="serie-commits" x="${xIni(i).toFixed(1)}" y="${y(v).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(m.arriba + plotH - y(v)).toFixed(1)}"/>`;
+      if (v == null) huecos.push(i);
+      else if (v) cuerpo += `<rect class="serie-commits" x="${xIni(i).toFixed(1)}" y="${y(v).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
     });
   } else {
     ticks = marcas(Math.max(1, ...serie.abiertos), 2).reverse();
-    y = v => m.arriba + plotH - (v / ticks[0]) * plotH;
+    y = v => base - (v / ticks[0]) * plotH;
     const puntos = serie.abiertos.map((v, i) => `${centro(i).toFixed(1)},${y(v).toFixed(1)}`);
-    cuerpo = `<path class="area-abiertos" d="M${centro(0).toFixed(1)},${m.arriba + plotH}L${puntos.join('L')}L${centro(n - 1).toFixed(1)},${m.arriba + plotH}Z"/>
+    cuerpo = `<path class="area-abiertos" d="M${centro(0).toFixed(1)},${base}L${puntos.join('L')}L${centro(n - 1).toFixed(1)},${base}Z"/>
       <path class="linea-abiertos" d="M${puntos.join('L')}"/>`;
   }
 
-  const rejilla = ticks.map(v => `<line class="rejilla${v === 0 ? ' rejilla-cero' : ''}" x1="${m.izq}" x2="${ancho - m.der}" y1="${y(v).toFixed(1) - 0.5}" y2="${y(v).toFixed(1) - 0.5}"/>
-    <text class="t-eje" x="${m.izq - 6}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${numero.format(Math.abs(v))}</text>`).join('');
+  const rayas = huecos.map(i => `<rect class="hueco" fill="url(#rayado-hueco-${tipo})" x="${(m.izq + i * paso).toFixed(1)}" y="${m.arriba}" width="${paso.toFixed(1)}" height="${plotH}"/>`).join('');
+  const rejilla = ticks.map(v => `<line class="rejilla${v === 0 ? ' rejilla-cero' : ''}" x1="${m.izq}" x2="${ancho - m.der}" y1="${(y(v) - 0.5).toFixed(1)}" y2="${(y(v) - 0.5).toFixed(1)}"/>
+    <text class="t-eje" x="${m.izq - 8}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${numero.format(Math.abs(v))}</text>`).join('');
 
-  const cuantas = Math.max(2, Math.floor(plotW / 90));
+  const cuantas = Math.max(2, Math.floor(plotW / 96));
   const salto = Math.max(1, Math.ceil(n / cuantas));
   let fechas = '';
   for (let i = 0; i < n; i += salto) {
@@ -2028,23 +2157,28 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
   const porIndice = {};
   let marcasRelease = '';
   if (tipo !== 'abiertos') {
-    let ultimaEtiqueta = -Infinity;
+    const filasCarril = [-Infinity, -Infinity];
     for (const [tag, fecha] of releases) {
       const i = indiceEnSerie(serie, fecha);
       if (i < 0) continue;
       (porIndice[i] ??= []).push(tag);
       const x = centro(i);
-      marcasRelease += `<line class="marca-release" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${m.arriba}" y2="${m.arriba + plotH}"/>`;
-      if (tipo === 'commits' && x - ultimaEtiqueta >= 48) {
-        marcasRelease += `<text class="t-release" x="${Math.min(x, ancho - 24).toFixed(1)}" y="${m.arriba - 6}" text-anchor="middle">${esc(tag)}</text>`;
-        ultimaEtiqueta = x;
-      }
+      marcasRelease += `<line class="marca-release" x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${m.arriba}" y2="${base}"/>`;
+      if (!carril) continue;
+      marcasRelease += `<path class="rombo-release" d="M${x.toFixed(1)} ${carril - 4}l4 4-4 4-4-4z"/>`;
+      const largo = tag.length * 6.4 + 10;
+      const fila = filasCarril.findIndex(ultimo => x - largo / 2 >= ultimo);
+      if (fila < 0) continue;
+      const xTexto = Math.min(Math.max(x, m.izq + largo / 2), ancho - largo / 2);
+      marcasRelease += `<text class="t-release" x="${xTexto.toFixed(1)}" y="${fila ? 22 : 10}" text-anchor="middle">${esc(tag)}</text>`;
+      filasCarril[fila] = xTexto + largo / 2;
     }
   }
 
   caja.innerHTML = `<svg width="${ancho}" height="${alto}" viewBox="0 0 ${ancho} ${alto}" role="img" tabindex="0" aria-label="${esc(resumen)}">
-    ${rejilla}${marcasRelease}${cuerpo}${fechas}
-    <line class="cursor-serie" x1="0" x2="0" y1="${m.arriba}" y2="${m.arriba + plotH}" visibility="hidden"/>
+    <defs><pattern id="rayado-hueco-${tipo}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="raya-hueco" x1="0" y1="0" x2="0" y2="5"/></pattern></defs>
+    ${rayas}${rejilla}${marcasRelease}${cuerpo}${fechas}
+    <rect class="cursor-serie" x="0" y="${m.arriba}" width="${paso.toFixed(1)}" height="${plotH}" visibility="hidden"/>
   </svg>`;
 
   const svg = caja.querySelector('svg');
@@ -2052,15 +2186,14 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
   const fecha = i => (serie.semanal ? t.semanaDe(fechaDe(serie.dias[i])) : fechaDe(serie.dias[i]));
   const texto = i => {
     const extra = porIndice[i] ? ` · ${t.releaseLectura(porIndice[i].join(', '))}` : '';
-    if (tipo === 'commits') return serie.commits[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaCommits(fecha(i), numero.format(serie.commits[i])) + extra;
+    if (tipo === 'commits') return (serie.commits[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaCommits(fecha(i), numero.format(serie.commits[i]))) + extra;
     if (tipo === 'issues') return t.lecturaIssues(fecha(i), numero.format(serie.reportados[i]), numero.format(serie.cerrados[i])) + extra;
     return t.lecturaAbiertos(fecha(i), numero.format(serie.abiertos[i]));
   };
   let actual = n - 1;
   const leer = i => {
     actual = i;
-    cursor.setAttribute('x1', centro(i).toFixed(1));
-    cursor.setAttribute('x2', centro(i).toFixed(1));
+    cursor.setAttribute('x', (m.izq + i * paso).toFixed(1));
     cursor.setAttribute('visibility', 'visible');
     lectura.textContent = texto(i);
   };
@@ -2087,7 +2220,8 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
 function dibujarDetalle() {
   const h = detalle.historial?.repos?.[detalle.nombre];
   if (!h) return;
-  const serie = serieDetalle(h, detalle.rango);
+  const rangos = [...[7, 14, 30, 90].filter(r => r < h.commits.length), 0];
+  const serie = serieDetalle(h, rangos.includes(detalle.rango) ? detalle.rango : 0);
   const dias = serie.semanal ? serie.dias.length * 7 : serie.dias.length;
   const contados = serie.commits.filter(v => v != null);
   const graficos = [
@@ -2110,7 +2244,9 @@ function renderDetalle() {
   const h = detalle.historial?.repos?.[f.nombre] ?? null;
   const posicion = lista.indexOf(f);
   const vecino = salto => lista[(posicion + salto + lista.length) % lista.length].nombre;
-  const semanal = h ? serieDetalle(h, detalle.rango).semanal : false;
+  const rangos = h ? [...[7, 14, 30, 90].filter(r => r < h.commits.length), 0] : [0];
+  const rango = rangos.includes(detalle.rango) ? detalle.rango : 0;
+  const semanal = h ? serieDetalle(h, rango).semanal : false;
   const sub = [
     f.release ? t.tipPublicada(fechaLarga.format(new Date(f.release.fecha)), textoDias(f.dias)) : t.sinReleases,
     f.estrellas != null ? `★ ${numero.format(f.estrellas)}` : '',
@@ -2164,9 +2300,9 @@ function renderDetalle() {
     </section>
     ${h ? `
     <div class="controles-detalle">
-      <div class="rango" role="group" aria-label="${esc(t.rangoTitulo)}">${[30, 90, 0].map(r => `<button type="button" data-rango="${r}" data-foco="rango-${r}" aria-pressed="${detalle.rango === r}">${esc(t.rangos[r])}</button>`).join('')}</div>
+      <div class="rango" role="group" aria-label="${esc(t.rangoTitulo)}">${rangos.map(r => `<button type="button" data-rango="${r}" data-foco="rango-${r}" aria-pressed="${rango === r}">${esc(t.rangos[r])}</button>`).join('')}</div>
     </div>
-    ${seccion('commits', t.tituloCommits(semanal))}
+    ${seccion('commits', t.tituloCommits(semanal), h.commits.includes(null) ? `<ul class="leyenda-serie"><li><svg width="12" height="10" aria-hidden="true"><rect width="12" height="10" fill="none" stroke="currentColor" stroke-dasharray="2 2"/></svg>${esc(t.sinContar)}</li></ul>` : '')}
     ${seccion('issues', t.tituloIssues(semanal), leyendaIssues)}
     ${seccion('abiertos', t.tituloAbiertos)}
     <section class="grafico-detalle">
@@ -2363,10 +2499,10 @@ function iniciar() {
 
   $('#actualizar').addEventListener('click', () => actualizar(true));
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && Date.now() - estado.intento >= INTERVALO) actualizar();
+    if (document.hidden) marcarVista();
+    else if (Date.now() >= siguienteRevision) actualizar();
   });
   window.addEventListener('online', () => actualizar());
-  setInterval(() => actualizar(), INTERVALO);
   setInterval(() => {
     renderCabecera();
     renderAvisos();
@@ -2374,6 +2510,13 @@ function iniciar() {
 
   window.addEventListener('pagehide', () => {
     if (estado.ocupado) soltarTurno();
+    else marcarVista();
+  });
+  $('#visita').addEventListener('click', evento => {
+    if (!evento.target.closest('button')) return;
+    delete cache.resumenVisita;
+    guardar();
+    renderVisita();
   });
   window.addEventListener('storage', evento => {
     if (evento.key !== CLAVE || estado.ocupado) return;
