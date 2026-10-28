@@ -2,7 +2,7 @@ name: Publicar tablero
 
 on:
   schedule:
-    - cron: '4,14,24,34,44,54 * * * *'
+    - cron: '17 0 * * *'
   push:
     branches: [main]
   workflow_dispatch:
@@ -35,7 +35,6 @@ jobs:
         run: |
           mkdir -p sitio/data
           cp index.html prueba.html sitio/
-          cp index.html sitio/en-vivo.html
           cp data/estado.json data/historial.json data/estado-recolector.json sitio/data/
 
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

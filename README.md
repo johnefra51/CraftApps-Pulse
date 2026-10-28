@@ -2,15 +2,25 @@
 
 Tablero que muestra, por cada app de la organización storytold, cuántos commits e issues cerrados se acumulan desde la última release, con un panel por app que guarda el historial completo en números.
 
-Una GitHub Action junta los datos cada 10 minutos y los publica junto a la página. La página solo lee esos archivos, así que quien la visita no gasta su cupo de la API.
+## Cómo funciona (híbrido)
+
+- **Historial (días completos hasta ayer):** una GitHub Action corre una vez al día y guarda el historial de cada app y una foto del estado de ese momento. Las fechas son en UTC.
+- **Hoy, en vivo:** el navegador consulta la API pública de GitHub, sin token. Parte de la foto del día y solo vuelve a consultar las apps que recibieron pushes desde entonces (y todas cada 6 horas, por si acaso).
+- **Mismo método en los dos lados:** lo de hoy se cuenta exactamente como lo cuenta la Action, solo que hasta ese momento; al terminar el día, la Action guarda ese mismo conteo ya completo. Además recuenta los últimos 30 días en cada pasada, porque un merge puede meter commits con fechas anteriores.
+- **Lo guardado en el navegador:** cada navegador guarda lo último que consultó, así que al volver muestra eso de inmediato y solo pide lo que falta.
+
+### Cuándo consulta
+
+- Como mucho una vez cada **15 minutos** por navegador.
+- **En vivo** (interruptor junto al botón): se actualiza solo cada 15 minutos mientras la pestaña está visible.
+- Sin **En vivo**: se actualiza al recargar la página o con el botón **Actualizar**, si ya pasaron los 15 minutos. Si todavía no pasaron, la página solo se redibuja con lo guardado, sin consultar ni avisar nada.
+- Al pie, una línea dice en cuántos minutos se puede volver a actualizar. Se recalcula en cada refresco; no corre en vivo.
+- El cupo de 60 consultas por hora por IP se reparte entre las rondas que quedan antes de que se renueve, dejando siempre una reserva, así que la página nunca pasa el límite. La primera consulta del día puede usar más para ponerse al día. Las búsquedas de issues tienen su propio límite (10 por minuto) y la página las espacia sola.
 
 ## Versiones
 
-- `/` (`index.html`): la principal. Lee los datos que publica la Action, sin gastar API. Si el archivo falta o tiene más de hora y media (por ejemplo, en local), consulta la API pública desde el navegador.
-- `/en-vivo.html` (o `/?en-vivo`): el mismo tablero consultando siempre la API desde el navegador (60 consultas por hora por IP). Sirve para ver el dato al momento.
-- `/prueba.html`: el mismo tablero con datos inventados, para ver efectos, sonidos y el panel.
-
-Las tres salen del mismo `index.html`. El historial del panel viene siempre del archivo que genera la Action, así que es el mismo en las dos versiones.
+- `/` (`index.html`): el tablero híbrido.
+- `/prueba.html`: el mismo tablero con datos inventados, para ver efectos, sonidos y el panel. Ahí la espera entre consultas es de 20 segundos en vez de 15 minutos.
 
 ## Panel por app
 
@@ -20,11 +30,7 @@ Al tocar una app en el gráfico o su nombre en la tabla se abre un panel con:
 - commits por día, issues reportados y cerrados por día, e issues abiertos a lo largo del tiempo, con las releases marcadas (30 días, 90 días o todo; con más de 120 días se agrupa por semana);
 - la lista de releases con los días, commits e issues cerrados de cada ciclo.
 
-Los commits por día se cuentan igual que en el tablero (commits de la rama por defecto según su fecha), y los issues salen de recorrer todos los issues de cada repositorio una vez y después solo los que cambian. La primera vez, el historial completo tarda alrededor de una hora en cargarse; mientras tanto el panel muestra el avance.
-
-## Cada cuánto se actualiza
-
-La Action está programada cada 10 minutos (minutos 4, 14, 24… de cada hora), pero GitHub atrasa las ejecuciones programadas cuando tiene mucha carga, a veces bastante, y en repositorios nuevos puede tardar en empezar a correrlas. La página revisa el archivo de datos justo cuando debería haber uno nuevo y, si GitHub se atrasa, vuelve a mirar cada 3 minutos; esa revisión es un archivo estático, no gasta API. Al pie, una línea dice en cuánto llega la próxima actualización; se recalcula en cada refresco y no corre en vivo.
+Los días anteriores salen del historial guardado. El día de hoy se pide en vivo al abrir el panel (1 consulta y 3 búsquedas, como mucho cada 15 minutos por app) y queda guardado en el navegador.
 
 ## Desde tu última visita
 
@@ -34,18 +40,17 @@ Cada navegador recuerda lo último que vio. Si vuelves después de un rato, la p
 
 - `index.html`: el tablero, en un solo archivo y sin build.
 - `prueba.html`: carga `index.html` con datos inventados.
-- `scripts/recolectar.py`: junta los datos y escribe `data/estado.json`, `data/historial.json` y `data/estado-recolector.json` (solo usa la librería estándar de Python).
-- `.github/workflows/publicar.yml`: corre el recolector y publica el sitio en GitHub Pages.
+- `scripts/recolectar.py`: junta los datos y escribe `data/estado.json` (la foto del día), `data/historial.json` (el historial hasta ayer) y `data/estado-recolector.json` (su avance), solo con la librería estándar de Python.
+- `.github/workflows/publicar.yml`: corre el recolector una vez al día (00:17 UTC) y con cada push a `main`, y publica el sitio en GitHub Pages.
 
 ## Publicarlo en GitHub Pages
 
 1. Sube todos los archivos a la rama `main` de un repositorio, incluida la carpeta `.github`.
-2. En el repositorio, ve a **Settings → Pages**.
-3. En **Build and deployment → Source**, elige **GitHub Actions**.
-4. Ve a la pestaña **Actions**, abre **Publicar tablero** y pulsa **Run workflow** para la primera publicación (también corre solo con cada push a `main`).
-5. Cuando termine, la dirección aparece en **Settings → Pages** (`https://<usuario>.github.io/<repositorio>/`).
+2. En **Settings → Pages → Build and deployment → Source**, elige **GitHub Actions**.
+3. En **Actions → Publicar tablero**, pulsa **Run workflow** para la primera publicación.
+4. La dirección aparece en **Settings → Pages** (`https://<usuario>.github.io/<repositorio>/`).
 
-Después corre solo cada 10 minutos. No hace falta crear ningún token: usa el que GitHub da a cada ejecución, con 1.000 consultas por hora. Una pasada gasta unas 40 consultas más hasta 26 búsquedas (que tienen su propio límite) y, mientras el historial se completa, hasta 150 consultas más dejando siempre margen. Cada pasada continúa desde el historial que publicó la anterior, así que no hace falta guardar nada en el repositorio. Las Actions son gratis en repositorios públicos. GitHub puede atrasar las ejecuciones programadas varios minutos y las pausa si el repositorio pasa 60 días sin actividad; en ese caso se reactivan desde la pestaña Actions.
+La Action usa el token que GitHub da a cada ejecución; no hace falta crear ninguno. GitHub puede atrasar la ejecución diaria, pero no importa: lo de hoy siempre se consulta en vivo. Si el repositorio pasa 60 días sin actividad, GitHub pausa la programación; se reactiva desde la pestaña Actions.
 
 ## Agregar o quitar apps
 
@@ -63,11 +68,7 @@ Los sonidos se generan en el navegador (sin archivos) y suenan bajito. Los naveg
 
 ## Página de prueba
 
-`prueba.html` carga el mismo `index.html` pero con datos inventados: no usa la API ni toca los datos guardados del tablero real. Un panel abajo a la derecha tiene botones para sumar commits o issues, publicar una release nueva, refrescar sin cambios, simular falta de cupo o de red y reiniciar los datos. Como lee `index.html`, cualquier cambio en el tablero se ve también en la prueba. Necesita abrirse desde un servidor (GitHub Pages o el comando de abajo), no con doble clic.
-
-## Límite de la API
-
-Publicado con la Action, el tablero no gasta API en el navegador. Sin el archivo (en local, o si la Action se detiene), consulta la API pública: 60 consultas por hora por IP (cada visitante gasta las suyas) y 10 búsquedas por minuto, que van aparte. La primera carga gasta unas 40 consultas. Después, cada 10 minutos y solo con la pestaña visible, pide la lista de la organización (1 consulta) y vuelve a consultar solo las apps que recibieron pushes; las demás, una vez por hora. Con varias pestañas abiertas, solo una consulta. Si se acaba el cupo, se muestra lo guardado y una nota al pie con la hora en que vuelve.
+`prueba.html` carga el mismo `index.html` pero con datos inventados: no usa la API ni toca los datos guardados del tablero real. Un panel abajo a la derecha tiene botones para sumar commits o issues, publicar una release nueva, refrescar respetando la espera (para ver qué pasa si todavía no se puede consultar), simular falta de cupo o de red y reiniciar los datos. Los botones que cambian datos se saltan la espera para poder probar seguido. Como lee `index.html`, cualquier cambio en el tablero se ve también en la prueba. Necesita abrirse desde un servidor (GitHub Pages o el comando de abajo), no con doble clic.
 
 ## Probarlo en local
 
@@ -81,4 +82,4 @@ Luego abre `http://localhost:8765` (consulta la API desde el navegador) o `http:
 python scripts/recolectar.py
 ```
 
-Sin token gasta unas 40 consultas de tu cupo de 60 por hora y tarda unos minutos por el límite de búsquedas, así que conviene limitarlo a algunas apps con `REPOS_PRUEBA=photocraft,soundcraft`, o definir `GITHUB_TOKEN` con un token propio. La carpeta `data/` no se sube al repositorio.
+Sin token gasta las consultas de tu propio cupo de 60 por hora (unas 30 más el historial) y tarda unos minutos por el límite de búsquedas, así que conviene limitarlo a algunas apps con `REPOS_PRUEBA=photocraft,soundcraft`, o definir `GITHUB_TOKEN` con un token propio. La carpeta `data/` no se sube al repositorio.

@@ -115,7 +115,7 @@ def cargar_org(repos):
     return encontrados
 
 
-def cargar_repo(nombre, org, etiquetas_bug, desde30):
+def cargar_repo(nombre, org, etiquetas_bug):
     info = org.get(nombre, {})
     rama = info.get('default_branch') or 'HEAD'
     base = f'/repos/{ORG}/{nombre}'
@@ -127,8 +127,6 @@ def cargar_repo(nombre, org, etiquetas_bug, desde30):
         comparacion, _ = api(f"{base}/compare/{urllib.parse.quote(release['tag'], safe='/')}...{urllib.parse.quote(rama, safe='/')}?per_page=1&page=2")
         adelante = comparacion['ahead_by'] if comparacion else None
 
-    commits, cabeceras = api(f'{base}/commits?since={desde30}&per_page=1')
-    commits30 = contar_por_link(cabeceras, len(commits or []))
 
     cerrados = bugs = None
     if release:
@@ -140,7 +138,7 @@ def cargar_repo(nombre, org, etiquetas_bug, desde30):
     return {
         'release': release,
         'adelante': adelante,
-        'commits30': commits30,
+        'commits30': None,
         'cerrados': cerrados,
         'bugs': bugs,
         'rama': info.get('default_branch'),
@@ -168,7 +166,7 @@ def guardar_issues(estado, lista, etiquetas_bug):
 
 
 def tareas_de_historia(nombre, estado, creado, etiquetas_bug):
-    hoy = AHORA.date()
+    ayer = AHORA.date() - timedelta(days=1)
     ahora = int(AHORA.timestamp())
     base = f'/repos/{ORG}/{nombre}'
 
@@ -208,16 +206,13 @@ def tareas_de_historia(nombre, estado, creado, etiquetas_bug):
     pendientes = []
     if estado.get('issuesCompleto'):
         urgentes.append(issues_recientes)
-    for dia in (hoy, hoy - timedelta(days=1)):
-        if dia >= creado:
-            urgentes.append(lambda dia=dia: contar(dia))
 
     dia = creado
-    while dia < hoy - timedelta(days=1):
+    while dia <= ayer:
         guardado = estado['commits'].get(dia.isoformat())
         fin_del_dia = int(datetime.combine(dia + timedelta(days=1), datetime.min.time(), timezone.utc).timestamp())
-        reciente = (hoy - dia).days <= 7
-        if not guardado or guardado[1] < fin_del_dia + HORA or (reciente and ahora - guardado[1] > 6 * HORA):
+        reciente = (ayer - dia).days < 30
+        if not guardado or guardado[1] < fin_del_dia + HORA or (reciente and ahora - guardado[1] > 12 * HORA):
             pendientes.append(lambda dia=dia: contar(dia))
         dia += timedelta(days=1)
     if not estado.get('issuesCompleto'):
@@ -226,8 +221,8 @@ def tareas_de_historia(nombre, estado, creado, etiquetas_bug):
 
 
 def armar_historia(estado, creado):
-    hoy = AHORA.date()
-    dias = (hoy - creado).days + 1
+    ayer = AHORA.date() - timedelta(days=1)
+    dias = max(0, (ayer - creado).days + 1)
     indice = lambda instante: (datetime.fromtimestamp(instante, timezone.utc).date() - creado).days
     commits = [estado['commits'].get((creado + timedelta(days=i)).isoformat(), [None])[0] for i in range(dias)]
     reportados = [0] * dias
@@ -265,14 +260,13 @@ def main():
         repos = [nombre for nombre in repos if nombre in solo.split(',')]
 
     previo = cargar_estado_previo()
-    desde30 = iso((AHORA - timedelta(days=30)).replace(hour=0, minute=0, second=0, microsecond=0))
     org = cargar_org(repos)
 
     resultado = {}
     errores = 0
     for nombre in repos:
         try:
-            resultado[nombre] = cargar_repo(nombre, org, etiquetas_bug, desde30)
+            resultado[nombre] = cargar_repo(nombre, org, etiquetas_bug)
             print(f"{nombre}: {resultado[nombre]['adelante']} commits desde la release, {resultado[nombre]['cerrados']} issues cerrados")
         except Exception as error:
             errores += 1
@@ -333,6 +327,7 @@ def main():
         datos = resultado[nombre]
         if 'error' not in datos and nombre in estados and datos.get('creado'):
             historia[nombre] = armar_historia(estados[nombre], date.fromisoformat(datos['creado'][:10]))
+            datos['commits30'] = sum(c or 0 for c in historia[nombre]['commits'][-30:])
 
     DATOS.mkdir(parents=True, exist_ok=True)
     generado = iso(datetime.now(timezone.utc))

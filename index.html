@@ -318,7 +318,15 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
 
 .solo-lector { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.modo { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--acento); border-radius: 3px; color: var(--acento); }
+.interruptor { display: inline-flex; align-items: center; gap: 8px; padding: 0 4px; font-size: 13px; color: var(--tinta-2); cursor: pointer; user-select: none; white-space: nowrap; }
+.interruptor input { position: relative; flex: none; width: 32px; height: 18px; margin: 0; appearance: none; background: var(--regla-2); border-radius: 9px; cursor: pointer; }
+.interruptor input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--superficie); border-radius: 50%; }
+.interruptor input:checked { background: var(--acento); }
+.interruptor input:checked::after { transform: translateX(14px); }
+.interruptor input:checked + span { color: var(--tinta); }
+@media (prefers-reduced-motion: no-preference) {
+  .interruptor input, .interruptor input::after { transition: background-color 0.15s, transform 0.15s; }
+}
 .fila { cursor: pointer; }
 .abrir-app {
   padding: 0;
@@ -414,7 +422,7 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
 <div class="pagina">
   <header class="cabecera">
     <div>
-      <p class="org"><a href="https://github.com/storytold">storytold</a> / apps<span id="modo" class="modo" hidden></span></p>
+      <p class="org"><a href="https://github.com/storytold">storytold</a> / apps</p>
       <h1>CraftApps-Pulse</h1>
     </div>
     <div class="meta">
@@ -436,6 +444,7 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
         <button id="efectos" class="icono" type="button" aria-pressed="true">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1.5l1.5 4.4 4.4 1.5-4.4 1.5L7 13.3l-1.5-4.4L1.1 7.4l4.4-1.5z" fill="currentColor"/><path class="ondas" d="M13 10.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/><path class="tachado" d="M2 14L14 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
+        <label class="interruptor"><input id="en-vivo" type="checkbox" role="switch"><span data-t="enVivo"></span></label>
         <button id="actualizar" type="button"></button>
       </div>
     </div>
@@ -478,7 +487,6 @@ tr.reciente td:first-child { box-shadow: inset 3px 0 var(--brillo); }
     <p id="nota-cupo" class="nota-cupo" role="status" hidden></p>
     <p data-t="pie1"></p>
     <p data-t="pie2"></p>
-    <p><a id="otra-version" href="?en-vivo"></a></p>
   </footer>
 </div>
 
@@ -492,13 +500,12 @@ const REPOS = [
 ];
 const ETIQUETAS_BUG = ['bug'];
 const DIAS_ATRASO = 14;
-const INTERVALO = 10 * 60 * 1000;
+const INTERVALO = 15 * 60 * 1000;
 const CONCURRENCIA = 3;
 const RESERVA = 4;
 
 const API = 'https://api.github.com';
-const EN_VIVO = /en-vivo(\.html)?$/.test(location.pathname) || new URLSearchParams(location.search).has('en-vivo');
-const CLAVE = EN_VIVO ? 'tablero-storytold:vivo:v1' : 'tablero-storytold:v1';
+const CLAVE = 'tablero-storytold:v2';
 const MIN = 60 * 1000;
 const DIA = 24 * 60 * MIN;
 
@@ -546,17 +553,17 @@ const TEXTOS = {
     issuesIncompletos: p => `El historial de issues todavía se está cargando (${p} %). Se completa solo en las próximas ejecuciones.`,
     diasSinContar: n => (n === 1 ? '1 día todavía sin contar.' : `${n} días todavía sin contar.`),
     historialDe: cuando => `Historial generado a las ${cuando}`,
-    modoVivo: 'en vivo',
     proximaEn: n => `Próxima actualización en ~${n} min`,
-    proximaPronto: 'Próxima actualización en cualquier momento (GitHub a veces se atrasa)',
-    proximaConsulta: n => `Próxima consulta a la API en ${n} min`,
+    enVivo: 'En vivo',
+    puedesActualizar: 'Puedes actualizar ahora',
+    disponibleEn: n => `Puedes actualizar en ${n} min`,
+    hoyEnVivo: 'Hoy se cuenta en vivo; los días anteriores salen del historial guardado.',
+    hoyPendiente: 'Lo de hoy todavía no se consulta.',
     visitaTitulo: cuando => `Desde tu última visita (${cuando})`,
     visitaCommits: (n, apps) => `${n} commits nuevos en ${apps === 1 ? '1 app' : `${apps} apps`}`,
     visitaIssues: n => `${n} issues cerrados`,
     visitaReleases: (n, lista) => `${n === 1 ? '1 release nueva' : `${n} releases nuevas`}: ${lista}`,
     entendido: 'Entendido',
-    verVivo: 'Ver la versión en vivo (consulta la API desde tu navegador)',
-    verAuto: 'Ver la versión automática (sin gastar API)',
     releaseLectura: tag => `release ${tag}`,
     sufijoIssues: n => (n === 1 ? 'issue cerrado' : 'issues cerrados'),
     actualizar: 'Actualizar',
@@ -571,8 +578,7 @@ const TEXTOS = {
     leyendaSin: 'Sin releases (commits de 30 d)',
     tituloTabla: 'Cifras por app',
     leyendaTabla: 'Toca un encabezado para ordenar. Los días cuentan desde la publicación de la última release.',
-    pie1: 'Una GitHub Action recolecta los datos cada 10 minutos y la página solo lee ese archivo, así que no gasta la API de quien la visita. Si el archivo no está o tiene más de hora y media, la página consulta directo la API pública de GitHub (60 consultas por hora por IP) y revisa solo las apps que recibieron cambios.',
-    fuenteArchivo: 'Datos del servidor, sin gastar API',
+    pie1: 'Los días anteriores vienen del historial que guarda una GitHub Action una vez al día. Lo de hoy se consulta en vivo a la API pública de GitHub desde tu navegador, como mucho cada 15 minutos y repartiendo el cupo de 60 consultas por hora para no pasarse nunca del límite. Con «En vivo» activado se actualiza solo; si no, al recargar la página o con el botón.',
     pie2: 'Commits desde la release: comparación entre la etiqueta de la release y la rama por defecto. Issues cerrados: issues (sin pull requests) cerrados desde la fecha de publicación de la release. Commits en 30 días: rama por defecto.',
     columnas: { nombre: 'App', version: 'Versión', fecha: 'Publicada', dias: 'Días', adelante: 'Commits desde release', cerrados: 'Issues cerrados', bugs: 'Con bug', commits30: 'Commits 30 d', estrellas: 'Estrellas', forks: 'Forks' },
     haceUnMomento: 'hace un momento',
@@ -589,7 +595,7 @@ const TEXTOS = {
     guardados: (cuando, hace) => `Muestro los datos guardados de las ${cuando} (${hace}).`,
     sinGuardados: 'Todavía no hay datos guardados en este navegador.',
     sinCupo: (reset, datos) => `Sin cupo de la API hasta las ${reset}${datos ? ` · datos de las ${datos}` : ''}`,
-    sinRed: guardados => `No hay conexión con GitHub. ${guardados} Vuelvo a intentar cuando regrese la red.`,
+    sinRed: guardados => `No hay conexión con GitHub. ${guardados}`,
     errorGithub: (error, guardados) => `GitHub devolvió un error (${error}). ${guardados}`,
     datosViejos: (cuando, hace) => `Datos guardados: la última actualización real fue a las ${cuando} (${hace}).`,
     esperaBusqueda: reset => `sigue a las ${reset}`,
@@ -600,7 +606,7 @@ const TEXTOS = {
     cifraIssuesSub: n => `${n} con etiqueta bug`,
     sinContarTodavia: 'sin contar todavía',
     cifra30: 'Commits en 30 días',
-    cifra30Sub: 'en las ramas por defecto',
+    cifra30Sub: 'en las ramas por defecto, hasta ayer',
     cifraVieja: 'Release más antigua',
     sinDatos: 'sin datos',
     sinReleases: 'sin releases',
@@ -664,17 +670,17 @@ const TEXTOS = {
     issuesIncompletos: p => `Issue history is still loading (${p} %). It completes on its own over the next runs.`,
     diasSinContar: n => (n === 1 ? '1 day not counted yet.' : `${n} days not counted yet.`),
     historialDe: cuando => `History generated at ${cuando}`,
-    modoVivo: 'live',
     proximaEn: n => `Next update in ~${n} min`,
-    proximaPronto: 'Next update any moment now (GitHub sometimes runs late)',
-    proximaConsulta: n => `Next API check in ${n} min`,
+    enVivo: 'Live',
+    puedesActualizar: 'You can refresh now',
+    disponibleEn: n => `You can refresh in ${n} min`,
+    hoyEnVivo: 'Today is counted live; earlier days come from the stored history.',
+    hoyPendiente: 'Today has not been queried yet.',
     visitaTitulo: cuando => `Since your last visit (${cuando})`,
     visitaCommits: (n, apps) => `${n} new commits across ${apps === 1 ? '1 app' : `${apps} apps`}`,
     visitaIssues: n => `${n} closed issues`,
     visitaReleases: (n, lista) => `${n === 1 ? '1 new release' : `${n} new releases`}: ${lista}`,
     entendido: 'Got it',
-    verVivo: 'See the live version (queries the API from your browser)',
-    verAuto: 'See the automatic version (no API use)',
     releaseLectura: tag => `release ${tag}`,
     sufijoIssues: n => (n === 1 ? 'closed issue' : 'closed issues'),
     actualizar: 'Refresh',
@@ -689,8 +695,7 @@ const TEXTOS = {
     leyendaSin: 'No releases (30-day commits)',
     tituloTabla: 'Numbers per app',
     leyendaTabla: 'Tap a header to sort. Days count from when the latest release was published.',
-    pie1: 'A GitHub Action collects the data every 10 minutes and the page only reads that file, so visitors spend no API quota. If the file is missing or older than an hour and a half, the page queries the public GitHub API directly (60 requests per hour per IP) and checks only apps that received changes.',
-    fuenteArchivo: 'Server data, no API use',
+    pie1: 'Past days come from the history a GitHub Action stores once a day. Today is queried live from your browser against the public GitHub API, at most every 15 minutes and spreading the 60-requests-per-hour quota so the limit is never exceeded. With «Live» on it refreshes by itself; otherwise when you reload the page or press the button.',
     pie2: 'Commits since release: comparison between the release tag and the default branch. Closed issues: issues (not pull requests) closed since the release was published. 30-day commits: default branch.',
     columnas: { nombre: 'App', version: 'Version', fecha: 'Published', dias: 'Days', adelante: 'Commits since release', cerrados: 'Closed issues', bugs: 'Bug', commits30: '30-day commits', estrellas: 'Stars', forks: 'Forks' },
     haceUnMomento: 'just now',
@@ -707,7 +712,7 @@ const TEXTOS = {
     guardados: (cuando, hace) => `Showing data saved at ${cuando} (${hace}).`,
     sinGuardados: 'No data saved in this browser yet.',
     sinCupo: (reset, datos) => `API quota used up until ${reset}${datos ? ` · data from ${datos}` : ''}`,
-    sinRed: guardados => `Can't reach GitHub. ${guardados} Retrying when the connection comes back.`,
+    sinRed: guardados => `Can't reach GitHub. ${guardados}`,
     errorGithub: (error, guardados) => `GitHub returned an error (${error}). ${guardados}`,
     datosViejos: (cuando, hace) => `Saved data: the last real update was at ${cuando} (${hace}).`,
     esperaBusqueda: reset => `resumes at ${reset}`,
@@ -718,7 +723,7 @@ const TEXTOS = {
     cifraIssuesSub: n => `${n} labeled bug`,
     sinContarTodavia: 'not counted yet',
     cifra30: 'Commits in 30 days',
-    cifra30Sub: 'on default branches',
+    cifra30Sub: 'on default branches, through yesterday',
     cifraVieja: 'Oldest release',
     sinDatos: 'no data',
     sinReleases: 'no releases',
@@ -782,17 +787,17 @@ const TEXTOS = {
     issuesIncompletos: p => `O histórico de issues ainda está carregando (${p} %). Ele se completa sozinho nas próximas execuções.`,
     diasSinContar: n => (n === 1 ? '1 dia ainda sem contar.' : `${n} dias ainda sem contar.`),
     historialDe: cuando => `Histórico gerado às ${cuando}`,
-    modoVivo: 'ao vivo',
     proximaEn: n => `Próxima atualização em ~${n} min`,
-    proximaPronto: 'Próxima atualização a qualquer momento (o GitHub às vezes atrasa)',
-    proximaConsulta: n => `Próxima consulta à API em ${n} min`,
+    enVivo: 'Ao vivo',
+    puedesActualizar: 'Você pode atualizar agora',
+    disponibleEn: n => `Você pode atualizar em ${n} min`,
+    hoyEnVivo: 'Hoje é contado ao vivo; os dias anteriores vêm do histórico guardado.',
+    hoyPendiente: 'O de hoje ainda não foi consultado.',
     visitaTitulo: cuando => `Desde sua última visita (${cuando})`,
     visitaCommits: (n, apps) => `${n} commits novos em ${apps === 1 ? '1 app' : `${apps} apps`}`,
     visitaIssues: n => `${n} issues fechadas`,
     visitaReleases: (n, lista) => `${n === 1 ? '1 release nova' : `${n} releases novas`}: ${lista}`,
     entendido: 'Entendi',
-    verVivo: 'Ver a versão ao vivo (consulta a API pelo seu navegador)',
-    verAuto: 'Ver a versão automática (sem gastar API)',
     releaseLectura: tag => `release ${tag}`,
     sufijoIssues: n => (n === 1 ? 'issue fechada' : 'issues fechadas'),
     actualizar: 'Atualizar',
@@ -807,8 +812,7 @@ const TEXTOS = {
     leyendaSin: 'Sem releases (commits de 30 d)',
     tituloTabla: 'Números por app',
     leyendaTabla: 'Toque em um cabeçalho para ordenar. Os dias contam a partir da publicação da última release.',
-    pie1: 'Uma GitHub Action coleta os dados a cada 10 minutos e a página só lê esse arquivo, então quem visita não gasta cota da API. Se o arquivo não existir ou tiver mais de uma hora e meia, a página consulta direto a API pública do GitHub (60 consultas por hora por IP) e verifica só os apps que receberam mudanças.',
-    fuenteArchivo: 'Dados do servidor, sem gastar API',
+    pie1: 'Os dias anteriores vêm do histórico que uma GitHub Action guarda uma vez por dia. O de hoje é consultado ao vivo na API pública do GitHub pelo seu navegador, no máximo a cada 15 minutos e repartindo a cota de 60 consultas por hora para nunca passar do limite. Com «Ao vivo» ligado ele se atualiza sozinho; se não, ao recarregar a página ou com o botão.',
     pie2: 'Commits desde a release: comparação entre a tag da release e o branch padrão. Issues fechadas: issues (sem pull requests) fechadas desde a publicação da release. Commits em 30 dias: branch padrão.',
     columnas: { nombre: 'App', version: 'Versão', fecha: 'Publicada', dias: 'Dias', adelante: 'Commits desde a release', cerrados: 'Issues fechadas', bugs: 'Com bug', commits30: 'Commits 30 d', estrellas: 'Estrelas', forks: 'Forks' },
     haceUnMomento: 'agora mesmo',
@@ -825,7 +829,7 @@ const TEXTOS = {
     guardados: (cuando, hace) => `Mostrando os dados salvos às ${cuando} (${hace}).`,
     sinGuardados: 'Ainda não há dados salvos neste navegador.',
     sinCupo: (reset, datos) => `Sem cota da API até as ${reset}${datos ? ` · dados das ${datos}` : ''}`,
-    sinRed: guardados => `Sem conexão com o GitHub. ${guardados} Tento de novo quando a rede voltar.`,
+    sinRed: guardados => `Sem conexão com o GitHub. ${guardados}`,
     errorGithub: (error, guardados) => `O GitHub retornou um erro (${error}). ${guardados}`,
     datosViejos: (cuando, hace) => `Dados salvos: a última atualização real foi às ${cuando} (${hace}).`,
     esperaBusqueda: reset => `continua às ${reset}`,
@@ -836,7 +840,7 @@ const TEXTOS = {
     cifraIssuesSub: n => `${n} com label bug`,
     sinContarTodavia: 'ainda sem contar',
     cifra30: 'Commits em 30 dias',
-    cifra30Sub: 'nos branches padrão',
+    cifra30Sub: 'nos branches padrão, até ontem',
     cifraVieja: 'Release mais antiga',
     sinDatos: 'sem dados',
     sinReleases: 'sem releases',
@@ -908,12 +912,6 @@ function usarIdioma(codigo) {
   });
   document.querySelectorAll('[data-t-aria]').forEach(nodo => nodo.setAttribute('aria-label', t[nodo.dataset.tAria]));
   $('#idioma').value = codigo;
-  const modo = $('#modo');
-  modo.hidden = !EN_VIVO;
-  modo.textContent = t.modoVivo;
-  const otra = $('#otra-version');
-  otra.textContent = EN_VIVO ? t.verAuto : t.verVivo;
-  otra.href = EN_VIVO ? './' : '?en-vivo';
   renderProxima();
   if (cache) renderVisita();
   if ($('#detalle')?.open) renderDetalle();
@@ -968,7 +966,7 @@ const efectos = {
 const prefs = leerPrefs();
 
 function leerPrefs() {
-  const base = { sonido: true, efectos: !matchMedia('(prefers-reduced-motion: reduce)').matches };
+  const base = { sonido: true, efectos: !matchMedia('(prefers-reduced-motion: reduce)').matches, enVivo: false };
   try {
     return { ...base, ...JSON.parse(localStorage.getItem(CLAVE_PREFS)) };
   } catch {
@@ -1034,6 +1032,7 @@ function aplicarPrefs() {
     boton.setAttribute('aria-label', t[clave]);
     boton.title = t[clave];
   }
+  $('#en-vivo').checked = Boolean(prefs.enVivo);
 }
 
 function leer() {
@@ -1128,17 +1127,10 @@ function contarPorLink(res, enPagina) {
   return ultima ? Number(ultima[1]) : enPagina;
 }
 
-function desde30Dias() {
-  const dia = Math.floor((Date.now() - 30 * DIA) / DIA) * DIA;
-  return new Date(dia).toISOString().replace('.000Z', 'Z');
-}
-
 const CLAVE_TURNO = `${CLAVE}:turno`;
 const ARCHIVO_DATOS = 'data/estado.json';
-const VIGENCIA_ARCHIVO = 90 * MIN;
-const REVISION_COMPLETA = 60 * MIN;
-
-const vencio30 = r => !r?.commits30En || Date.now() - r.commits30En >= REVISION_COMPLETA;
+const ARCHIVO_HISTORIAL = 'data/historial.json';
+const REVISION_COMPLETA = 6 * 60 * MIN;
 
 function necesitaRepaso(nombre, ahora) {
   const r = cache.repos[nombre];
@@ -1146,8 +1138,6 @@ function necesitaRepaso(nombre, ahora) {
   const empujado = cache.org?.repos?.[nombre]?.empujado;
   return !empujado || empujado !== r.empujado;
 }
-
-const costoRepo = nombre => 2 + (vencio30(cache.repos[nombre]) ? 1 : 0);
 
 function tomarTurno() {
   try {
@@ -1170,56 +1160,62 @@ function renovarTurno() {
   } catch {}
 }
 
-async function cargarArchivo() {
-  let datos;
+async function leerGuardado(ruta) {
   try {
-    const res = await fetch(ARCHIVO_DATOS, { cache: 'no-cache' });
-    if (!res.ok) return null;
-    datos = await res.json();
+    const res = await fetch(ruta, { cache: 'no-cache' });
+    return res.ok ? await res.json() : null;
   } catch {
     return null;
   }
-  const generado = Date.parse(datos?.generado);
-  if (!generado || !datos.repos || Date.now() - generado > VIGENCIA_ARCHIVO) return null;
+}
 
-  const previo = instantanea();
-  const issuesAntes = Object.fromEntries(REPOS.map(nombre => [nombre, { tag: cache.repos[nombre]?.release?.tag, cerrados: cache.repos[nombre]?.cerrados }]));
-  const lote = REPOS.filter(nombre => datos.repos[nombre] && !datos.repos[nombre].error && cache.repos[nombre]?.generado !== generado);
-  const org = {};
-  for (const nombre of REPOS) {
-    const d = datos.repos[nombre];
-    if (!d) continue;
-    if (d.error) {
-      cache.repos[nombre] = { ...cache.repos[nombre], error: d.error };
-      continue;
+function aplicarHistorial(historial) {
+  detalle.historial = historial;
+  detalle.cargadoEn = Date.now();
+  const hoy = hoyUTC();
+  cache.commits30 = Object.fromEntries(Object.entries(historial.repos).map(([nombre, h]) => {
+    const guardados = h.commits.slice(0, Math.max(0, diasEntre(h.desde, hoy))).slice(-30);
+    return [nombre, guardados.some(v => v != null) ? sumaSerie(guardados) : null];
+  }));
+}
+
+async function cargarGuardados() {
+  const [foto, historial] = await Promise.all([leerGuardado(ARCHIVO_DATOS), leerGuardado(ARCHIVO_HISTORIAL)]);
+  if (historial?.repos) aplicarHistorial(historial);
+  const generado = Date.parse(foto?.generado);
+  if (!generado || !foto.repos) return;
+  if ((cache.org?.en ?? 0) < generado) {
+    const org = {};
+    for (const nombre of REPOS) {
+      const d = foto.repos[nombre];
+      if (d && !d.error) org[nombre] = { nombre, rama: d.rama, estrellas: d.estrellas, forks: d.forks, url: d.url, empujado: d.empujado };
     }
+    cache.org = { en: generado, repos: org };
+  }
+  for (const nombre of REPOS) {
+    const d = foto.repos[nombre];
+    const local = cache.repos[nombre];
+    if (!d || d.error || (local?.en ?? 0) >= generado) continue;
     cache.repos[nombre] = {
+      ...local,
       release: d.release,
       adelante: d.adelante,
-      commits30: d.commits30,
       cerrados: d.cerrados ?? undefined,
       bugs: d.bugs ?? undefined,
       empujado: d.empujado,
       en: generado,
       visto: generado,
-      generado,
       error: null,
     };
-    org[nombre] = { nombre, rama: d.rama, estrellas: d.estrellas, forks: d.forks, url: d.url, empujado: d.empujado };
   }
-  cache.org = { en: generado, repos: org };
-  cache.fuente = 'archivo';
-  cache.generado = generado;
-  cache.sinCupoHasta = null;
-  return { previo, issuesAntes, lote };
 }
 
-function celebrarIssues(issuesAntes, lote) {
+function celebrarIssues(issuesAntes, nombres) {
   const finCrecer = efectos.crecerDesde + CRECER + REPOS.length * ESCALON + 200;
-  for (const nombre of lote) {
+  for (const nombre of nombres) {
     const antes = issuesAntes[nombre];
     const ahora = cache.repos[nombre];
-    if (antes.cerrados == null || antes.tag !== ahora.release?.tag || !(ahora.cerrados > antes.cerrados)) continue;
+    if (antes?.cerrados == null || antes.tag !== ahora?.release?.tag || !(ahora.cerrados > antes.cerrados)) continue;
     lanzarCambio({ nombre, tipo: 'cerrados', delta: ahora.cerrados - antes.cerrados }, finCrecer - Date.now());
   }
 }
@@ -1251,16 +1247,10 @@ async function cargarRepo(nombre) {
     const adelante = release
       ? await api(`${base}/compare/${encodeURI(release.tag)}...${encodeURI(rama)}?per_page=1&page=2`, json => json.ahead_by)
       : null;
-    const vence30 = vencio30(antes);
-    const commits30 = vence30
-      ? await api(`${base}/commits?since=${desde30Dias()}&per_page=1`, (json, res) => contarPorLink(res, json.length))
-      : antes.commits30;
     const mismaRelease = antes?.release?.tag === release?.tag;
     cache.repos[nombre] = {
       release,
       adelante,
-      commits30,
-      commits30En: vence30 ? Date.now() : antes?.commits30En,
       cerrados: mismaRelease ? antes?.cerrados : undefined,
       bugs: mismaRelease ? antes?.bugs : undefined,
       empujado: cache.org?.repos?.[nombre]?.empujado ?? null,
@@ -1290,10 +1280,6 @@ async function cargarIssues(nombre) {
     : cerrados === antes && bugsAntes != null ? bugsAntes
     : await api(`/search/issues?per_page=1&q=${encodeURIComponent(`${consulta} label:${etiquetas}`)}`, total);
   Object.assign(cache.repos[nombre], { cerrados, bugs, errorIssues: null });
-  if (antes != null && cerrados > antes) {
-    const finCrecer = efectos.crecerDesde + CRECER + REPOS.length * ESCALON + 200;
-    lanzarCambio({ nombre, tipo: 'cerrados', delta: cerrados - antes }, finCrecer - Date.now());
-  }
 }
 
 function instantanea() {
@@ -1468,32 +1454,22 @@ let siguienteRevision = 0;
 let temporizadorRevision = 0;
 const VISITA_MINIMA = 20 * MIN;
 
+const disponibleDesde = () => (cache.ultimaConsulta ?? 0) + INTERVALO;
+const consultaDisponible = () => Date.now() >= disponibleDesde() - Math.min(30 * 1000, INTERVALO / 10);
+
 function programarRevision() {
-  const ahora = Date.now();
-  let espera = INTERVALO;
-  estado.proxima = { tipo: 'api', minutos: Math.round(INTERVALO / MIN) };
-  if (cache.fuente === 'archivo' && cache.generado) {
-    const esperada = cache.generado + INTERVALO + 90 * 1000;
-    if (esperada > ahora) {
-      espera = Math.min(Math.max(esperada - ahora, 2 * MIN), 15 * MIN);
-      estado.proxima = { tipo: 'archivo', minutos: Math.max(1, Math.ceil((esperada - ahora) / MIN)) };
-    } else {
-      espera = 3 * MIN;
-      estado.proxima = { tipo: 'pronto' };
-    }
-  }
-  siguienteRevision = ahora + espera;
   clearTimeout(temporizadorRevision);
-  temporizadorRevision = setTimeout(() => actualizar(), espera);
+  siguienteRevision = disponibleDesde();
+  if (prefs.enVivo) temporizadorRevision = setTimeout(() => actualizar(), Math.max(Math.min(30 * 1000, INTERVALO / 10), siguienteRevision - Date.now()));
+  estado.proxima = Math.max(0, Math.ceil((siguienteRevision - Date.now()) / MIN));
   renderProxima();
 }
 
 function renderProxima() {
-  const proxima = estado.proxima;
-  if (!proxima) return;
-  $('#proxima').textContent = proxima.tipo === 'pronto' ? t.proximaPronto
-    : proxima.tipo === 'archivo' ? t.proximaEn(proxima.minutos)
-    : t.proximaConsulta(proxima.minutos);
+  if (estado.proxima == null) return;
+  $('#proxima').textContent = prefs.enVivo ? t.proximaEn(Math.max(1, estado.proxima))
+    : estado.proxima <= 0 ? t.puedesActualizar
+    : t.disponibleEn(estado.proxima);
 }
 
 function marcarVista() {
@@ -1547,7 +1523,58 @@ function avisarSinCupo(reset) {
   cache.sinCupoHasta = reset;
   clearTimeout(reintentoCupo);
   const espera = reset - Date.now() + 5000;
-  if (espera < 70 * MIN) reintentoCupo = setTimeout(() => actualizar(), Math.max(espera, 5000));
+  if (prefs.enVivo && espera < 70 * MIN) reintentoCupo = setTimeout(() => actualizar(), Math.max(espera, 5000));
+}
+
+async function consultarRepos() {
+  await leerCupo();
+  const ahora = Date.now();
+  const cupo = cache.cupo.core ?? { restante: 60, reset: ahora + 60 * MIN };
+  const libre = cupo.restante - RESERVA;
+  const dia = instante => new Date(instante).toISOString().slice(0, 10);
+  const primeraDelDia = !cache.ultimaConsulta || dia(cache.ultimaConsulta) !== dia(ahora);
+  const rondas = Math.max(1, Math.ceil((cupo.reset - ahora) / INTERVALO));
+  let presupuesto = primeraDelDia ? libre : Math.min(libre, Math.max(5, Math.floor(libre / rondas)));
+  if (presupuesto < 3) {
+    avisarSinCupo(cupo.reset);
+    return false;
+  }
+  await cargarOrg();
+  cache.ultimaConsulta = Date.now();
+  presupuesto -= 1;
+  const pendientes = REPOS
+    .filter(nombre => necesitaRepaso(nombre, ahora))
+    .sort((a, b) => (cache.repos[a]?.en ?? 0) - (cache.repos[b]?.en ?? 0));
+  const lote = pendientes.slice(0, Math.floor(presupuesto / 2));
+  estado.esperando = pendientes.length - lote.length;
+  for (const nombre of REPOS) {
+    if (cache.repos[nombre]?.en && !pendientes.includes(nombre)) cache.repos[nombre].visto = Date.now();
+  }
+  if (pendientes.length && !lote.length) avisarSinCupo(cupo.reset);
+  else cache.sinCupoHasta = null;
+
+  estado.progreso = { hechos: 0, total: lote.length };
+  await enParalelo(lote, CONCURRENCIA, cargarRepo);
+  estado.progreso = null;
+  return true;
+}
+
+async function contarIssues() {
+  const porContar = REPOS.filter(nombre => cache.repos[nombre]?.release);
+  estado.contando = { hechos: 0, total: porContar.length };
+  for (const nombre of porContar) {
+    renovarTurno();
+    render();
+    try {
+      await cargarIssues(nombre);
+    } catch (e) {
+      if (e instanceof ErrorRed) throw e;
+      cache.repos[nombre].errorIssues = e instanceof SinCupo ? 'cupo' : e.message;
+      if (e instanceof SinCupo) break;
+    }
+    estado.contando.hechos++;
+    guardar();
+  }
 }
 
 async function actualizar(manual = false) {
@@ -1563,66 +1590,17 @@ async function actualizar(manual = false) {
   estado.error = null;
   estado.intento = Date.now();
   efectos.racha = 0;
+  const previo = instantanea();
+  const issuesAntes = Object.fromEntries(REPOS.map(nombre => [nombre, { tag: cache.repos[nombre]?.release?.tag, cerrados: cache.repos[nombre]?.cerrados }]));
   render();
   try {
-    const archivo = EN_VIVO ? null : await cargarArchivo();
-    if (archivo) {
-      celebrarRefresco(archivo.previo, archivo.lote, manual);
-      celebrarIssues(archivo.issuesAntes, archivo.lote);
-      if (vistaAnterior && Date.now() - vistaAnterior > VISITA_MINIMA && archivo.lote.length) {
-        await prepararResumenVisita(archivo.previo, archivo.issuesAntes, vistaAnterior);
-      }
-      return;
-    }
-    cache.fuente = 'api';
-    await leerCupo();
-    const previo = instantanea();
-    const ahora = Date.now();
-    let libre = (cache.cupo.core?.restante ?? 60) - RESERVA;
-    const edadOrg = cache.org ? ahora - cache.org.en : Infinity;
-    const orgVencida = edadOrg >= INTERVALO - MIN;
-    if ((orgVencida || (manual && edadOrg >= MIN)) && libre >= 1) {
-      await cargarOrg();
-      libre -= 1;
-    }
-    const orgAlDia = cache.org && Date.now() - cache.org.en < INTERVALO;
-    const pendientes = REPOS
-      .filter(nombre => !orgAlDia || necesitaRepaso(nombre, ahora))
-      .sort((a, b) => (cache.repos[a]?.en ?? 0) - (cache.repos[b]?.en ?? 0));
-    const lote = [];
-    for (const nombre of pendientes) {
-      if (costoRepo(nombre) > libre) break;
-      lote.push(nombre);
-      libre -= costoRepo(nombre);
-    }
-    estado.esperando = pendientes.length - lote.length;
-    if (orgAlDia) {
-      for (const nombre of REPOS) if (cache.repos[nombre]?.en && !pendientes.includes(nombre)) cache.repos[nombre].visto = Date.now();
-    }
-    if ((orgVencida && libre < 1 && !orgAlDia) || (pendientes.length && !lote.length)) avisarSinCupo(cache.cupo.core.reset);
-    else cache.sinCupoHasta = null;
-
-    estado.progreso = { hechos: 0, total: lote.length };
-    await enParalelo(lote, CONCURRENCIA, cargarRepo);
-    estado.progreso = null;
-    celebrarRefresco(previo, lote, manual);
+    await cargarGuardados();
+    const consultado = consultaDisponible() && await consultarRepos();
+    celebrarRefresco(previo, REPOS, manual);
     guardar();
-
-    const porContar = REPOS.filter(nombre => cache.repos[nombre]?.release);
-    estado.contando = { hechos: 0, total: porContar.length };
-    for (const nombre of porContar) {
-      renovarTurno();
-      render();
-      try {
-        await cargarIssues(nombre);
-      } catch (e) {
-        if (e instanceof ErrorRed) throw e;
-        cache.repos[nombre].errorIssues = e instanceof SinCupo ? 'cupo' : e.message;
-        if (e instanceof SinCupo) break;
-      }
-      estado.contando.hechos++;
-      guardar();
-    }
+    if (consultado) await contarIssues();
+    celebrarIssues(issuesAntes, REPOS);
+    if (vistaAnterior && Date.now() - vistaAnterior > VISITA_MINIMA) await prepararResumenVisita(previo, issuesAntes, vistaAnterior);
   } catch (e) {
     if (e instanceof SinCupo) {
       avisarSinCupo(e.reset);
@@ -1660,10 +1638,10 @@ function filas() {
       dias,
       estado: !cargado ? 'pendiente' : !release ? 'sin' : dias > DIAS_ATRASO ? 'atrasado' : 'al-dia',
       adelante: r.adelante ?? null,
-      commits30: r.commits30 ?? null,
+      commits30: cache.commits30?.[nombre] ?? null,
       cerrados: release ? r.cerrados : null,
       bugs: release && r.cerrados !== undefined ? r.bugs ?? null : null,
-      valor: release ? r.adelante ?? null : r.commits30 ?? null,
+      valor: release ? r.adelante ?? null : cache.commits30?.[nombre] ?? null,
       estrellas: org.estrellas ?? null,
       forks: org.forks ?? null,
       en: r.en ?? null,
@@ -1728,8 +1706,7 @@ function renderCabecera() {
 
   const cupo = cache.cupo.core;
   let textoCupo = '';
-  if (cache.fuente === 'archivo') textoCupo = t.fuenteArchivo;
-  else if (cupo && Date.now() < cupo.reset) textoCupo = t.cupo(cupo.restante, cupo.limite, hora.format(cupo.reset));
+  if (cupo && Date.now() < cupo.reset) textoCupo = t.cupo(cupo.restante, cupo.limite, hora.format(cupo.reset));
   else if (cupo) textoCupo = t.cupoRenovado(cupo.limite);
   if (estado.esperando) textoCupo += ` · ${t.esperanCupo(estado.esperando)}`;
   $('#meta-cupo').textContent = textoCupo;
@@ -1753,7 +1730,7 @@ function renderAvisos() {
   } else if (estado.error) {
     avisos.push(['error', t.errorGithub(estado.error, guardados)]);
   }
-  const limiteViejos = cache.fuente === 'archivo' ? 45 * MIN : 2 * INTERVALO;
+  const limiteViejos = 2 * INTERVALO;
   if (!avisos.length && !sinCupo && !estado.ocupado && ultima && Date.now() - ultima > limiteViejos) {
     avisos.push(['neutro', t.datosViejos(cuando(ultima), haceCuanto(ultima))]);
   }
@@ -2027,17 +2004,57 @@ const fechaDe = dia => fechaCorta.format(new Date(`${dia}T12:00:00Z`));
 const diasEntre = (desde, hasta) => Math.round((Date.parse(`${hasta.slice(0, 10)}T00:00:00Z`) - Date.parse(`${desde.slice(0, 10)}T00:00:00Z`)) / DIA);
 const sumaSerie = lista => lista.reduce((total, valor) => total + (valor ?? 0), 0);
 
+const hoyUTC = () => new Date().toISOString().slice(0, 10);
+const ultimoValor = lista => [...lista].reverse().find(valor => valor != null) ?? null;
+
 async function cargarHistorial() {
   if (detalle.historial && Date.now() - detalle.cargadoEn < INTERVALO) return;
   detalle.cargando = true;
-  try {
-    const res = await fetch('data/historial.json', { cache: 'no-cache' });
-    detalle.historial = res.ok ? await res.json() : null;
-  } catch {
-    detalle.historial = null;
-  }
+  const datos = await leerGuardado(ARCHIVO_HISTORIAL);
+  if (datos?.repos) aplicarHistorial(datos);
   detalle.cargando = false;
   detalle.cargadoEn = Date.now();
+}
+
+function historiaCompleta(nombre) {
+  const h = detalle.historial?.repos?.[nombre];
+  if (!h) return null;
+  const hoy = hoyUTC();
+  const dias = diasEntre(h.desde, hoy) + 1;
+  if (dias < 1) return null;
+  const guardados = Math.min(h.commits.length, dias - 1);
+  const vivo = cache.hoy?.[nombre]?.dia === hoy ? cache.hoy[nombre] : null;
+  const extender = (lista, deHoy) => Array.from({ length: dias }, (_, i) => (i < guardados ? lista[i] : i === dias - 1 ? deHoy : null));
+  return {
+    ...h,
+    commits: extender(h.commits, vivo?.commits ?? null),
+    reportados: extender(h.reportados, vivo?.reportados ?? null),
+    cerrados: extender(h.cerrados, vivo?.cerrados ?? null),
+    abiertos: extender(h.abiertos, vivo?.abiertos ?? null),
+    hoyEnVivo: Boolean(vivo),
+  };
+}
+
+async function cargarHoy(nombre) {
+  const hoy = hoyUTC();
+  const previo = cache.hoy?.[nombre];
+  if (previo?.dia === hoy && Date.now() - previo.en < INTERVALO) return false;
+  const cupo = cache.cupo.core;
+  if (cupo && Date.now() < cupo.reset && cupo.restante <= RESERVA + 1) return false;
+  const desde = `${hoy}T00:00:00Z`;
+  const contar = consulta => api(`/search/issues?per_page=1&q=${encodeURIComponent(`repo:${ORG}/${nombre} is:issue ${consulta}`)}`, json => json.total_count);
+  try {
+    const commits = await api(`/repos/${ORG}/${nombre}/commits?since=${desde}&per_page=1`, (json, res) => contarPorLink(res, json.length));
+    const reportados = await contar(`created:>=${desde}`);
+    const cerrados = await contar(`is:closed closed:>=${desde}`);
+    const abiertos = await contar('is:open');
+    const deHoy = Object.fromEntries(Object.entries(cache.hoy ?? {}).filter(([, datos]) => datos.dia === hoy));
+    cache.hoy = { ...deHoy, [nombre]: { dia: hoy, commits, reportados, cerrados, abiertos, en: Date.now() } };
+    guardar();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function abrirDetalle(nombre) {
@@ -2051,6 +2068,7 @@ async function abrirDetalle(nombre) {
   }
   await carga;
   if (dialogo.open && detalle.nombre === nombre) renderDetalle();
+  if (await cargarHoy(nombre) && dialogo.open && detalle.nombre === nombre) renderDetalle();
 }
 
 function serieDetalle(h, rango) {
@@ -2125,6 +2143,7 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
     serie.dias.forEach((_, i) => {
       const arriba = serie.reportados[i];
       const abajo = serie.cerrados[i];
+      if (arriba == null) huecos.push(i);
       if (arriba) cuerpo += `<rect class="serie-reportados" x="${xIni(i).toFixed(1)}" y="${y(arriba).toFixed(1)}" width="${grueso.toFixed(1)}" height="${Math.max(0, cero - y(arriba) - 1).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
       if (abajo) cuerpo += `<rect class="serie-cerrados" x="${xIni(i).toFixed(1)}" y="${cero + 1}" width="${grueso.toFixed(1)}" height="${Math.max(0, y(-abajo) - cero - 1).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
     });
@@ -2136,11 +2155,23 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
       else if (v) cuerpo += `<rect class="serie-commits" x="${xIni(i).toFixed(1)}" y="${y(v).toFixed(1)}" width="${grueso.toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="${Math.min(2, grueso / 3).toFixed(1)}"/>`;
     });
   } else {
-    ticks = marcas(Math.max(1, ...serie.abiertos), 2).reverse();
+    ticks = marcas(Math.max(1, ...serie.abiertos.filter(v => v != null)), 2).reverse();
     y = v => base - (v / ticks[0]) * plotH;
-    const puntos = serie.abiertos.map((v, i) => `${centro(i).toFixed(1)},${y(v).toFixed(1)}`);
-    cuerpo = `<path class="area-abiertos" d="M${centro(0).toFixed(1)},${base}L${puntos.join('L')}L${centro(n - 1).toFixed(1)},${base}Z"/>
-      <path class="linea-abiertos" d="M${puntos.join('L')}"/>`;
+    const segmentos = [];
+    serie.abiertos.forEach((v, i) => {
+      if (v == null) {
+        huecos.push(i);
+        return;
+      }
+      const punto = [centro(i), y(v)];
+      if (i === 0 || serie.abiertos[i - 1] == null) segmentos.push([punto]);
+      else segmentos[segmentos.length - 1].push(punto);
+    });
+    cuerpo = segmentos.map(puntos => {
+      const linea = puntos.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join('L');
+      return `<path class="area-abiertos" d="M${puntos[0][0].toFixed(1)},${base}L${linea}L${puntos[puntos.length - 1][0].toFixed(1)},${base}Z"/>
+      <path class="linea-abiertos" d="M${linea}"/>`;
+    }).join('');
   }
 
   const rayas = huecos.map(i => `<rect class="hueco" fill="url(#rayado-hueco-${tipo})" x="${(m.izq + i * paso).toFixed(1)}" y="${m.arriba}" width="${paso.toFixed(1)}" height="${plotH}"/>`).join('');
@@ -2187,8 +2218,8 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
   const texto = i => {
     const extra = porIndice[i] ? ` · ${t.releaseLectura(porIndice[i].join(', '))}` : '';
     if (tipo === 'commits') return (serie.commits[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaCommits(fecha(i), numero.format(serie.commits[i]))) + extra;
-    if (tipo === 'issues') return t.lecturaIssues(fecha(i), numero.format(serie.reportados[i]), numero.format(serie.cerrados[i])) + extra;
-    return t.lecturaAbiertos(fecha(i), numero.format(serie.abiertos[i]));
+    if (tipo === 'issues') return (serie.reportados[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaIssues(fecha(i), numero.format(serie.reportados[i]), numero.format(serie.cerrados[i] ?? 0))) + extra;
+    return serie.abiertos[i] == null ? `${fecha(i)}: ${t.sinContar}` : t.lecturaAbiertos(fecha(i), numero.format(serie.abiertos[i]));
   };
   let actual = n - 1;
   const leer = i => {
@@ -2218,7 +2249,7 @@ function dibujarSerie(caja, lectura, { serie, tipo, releases, resumen }) {
 }
 
 function dibujarDetalle() {
-  const h = detalle.historial?.repos?.[detalle.nombre];
+  const h = historiaCompleta(detalle.nombre);
   if (!h) return;
   const rangos = [...[7, 14, 30, 90].filter(r => r < h.commits.length), 0];
   const serie = serieDetalle(h, rangos.includes(detalle.rango) ? detalle.rango : 0);
@@ -2227,7 +2258,7 @@ function dibujarDetalle() {
   const graficos = [
     ['commits', t.resumenCommits(numero.format(sumaSerie(contados)), numero.format(dias))],
     ['issues', t.resumenIssues(numero.format(sumaSerie(serie.reportados)), numero.format(sumaSerie(serie.cerrados)))],
-    ['abiertos', t.resumenAbiertos(numero.format(serie.abiertos.at(-1) ?? 0))],
+    ['abiertos', t.resumenAbiertos(numero.format(ultimoValor(serie.abiertos) ?? 0))],
   ];
   for (const [tipo, resumen] of graficos) {
     const caja = $(`#lienzo-${tipo}`);
@@ -2241,7 +2272,7 @@ function renderDetalle() {
   const f = lista.find(fila => fila.nombre === detalle.nombre);
   if (!f) return;
   const enfocado = document.activeElement?.dataset?.foco;
-  const h = detalle.historial?.repos?.[f.nombre] ?? null;
+  const h = historiaCompleta(f.nombre);
   const posicion = lista.indexOf(f);
   const vecino = salto => lista[(posicion + salto + lista.length) % lista.length].nombre;
   const rangos = h ? [...[7, 14, 30, 90].filter(r => r < h.commits.length), 0] : [0];
@@ -2256,12 +2287,13 @@ function renderDetalle() {
     [t.cifraCommits, f.adelante == null ? '—' : numero.format(f.adelante), f.release ? f.release.tag : t.sinReleases],
     [t.cifraIssues, f.cerrados == null ? '—' : numero.format(f.cerrados), f.bugs ? t.cifraIssuesSub(numero.format(f.bugs)) : ''],
     [t.kpiHistorial, h ? numero.format(sumaSerie(h.commits)) : '—', h ? t.desde(fechaDe(h.desde)) : ''],
-    [t.kpiAbiertos, h?.completo?.issues ? numero.format(h.abiertos.at(-1) ?? 0) : '—', h && !h.completo?.issues ? `${progreso} %` : ''],
+    [t.kpiAbiertos, h?.completo?.issues && ultimoValor(h.abiertos) != null ? numero.format(ultimoValor(h.abiertos)) : '—', h && !h.completo?.issues ? `${progreso} %` : ''],
   ];
   const notas = [];
   if (h && !h.completo?.issues) notas.push(t.issuesIncompletos(progreso));
   const sinContar = h ? h.commits.filter(v => v == null).length : 0;
   if (sinContar) notas.push(t.diasSinContar(sinContar));
+  if (h) notas.push(h.hoyEnVivo ? t.hoyEnVivo : t.hoyPendiente);
   if (detalle.historial?.generado) notas.push(t.historialDe(cuando(Date.parse(detalle.historial.generado))));
 
   const seccion = (tipo, titulo, leyenda = '') => `
@@ -2500,9 +2532,17 @@ function iniciar() {
   $('#actualizar').addEventListener('click', () => actualizar(true));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) marcarVista();
-    else if (Date.now() >= siguienteRevision) actualizar();
+    else if (prefs.enVivo && Date.now() >= siguienteRevision) actualizar();
   });
-  window.addEventListener('online', () => actualizar());
+  window.addEventListener('online', () => {
+    if (prefs.enVivo) actualizar();
+  });
+  $('#en-vivo').addEventListener('change', evento => {
+    prefs.enVivo = evento.target.checked;
+    guardarPrefs();
+    if (prefs.enVivo && consultaDisponible()) actualizar();
+    else programarRevision();
+  });
   setInterval(() => {
     renderCabecera();
     renderAvisos();
@@ -2522,6 +2562,7 @@ function iniciar() {
     if (evento.key !== CLAVE || estado.ocupado) return;
     cache = leer();
     render();
+    programarRevision();
   });
 
   efectos.crecerDesde = Date.now();
